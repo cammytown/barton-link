@@ -1,0 +1,9 @@
+.venv
+config/.gdocs/
+barton.db
+
+__pycache__/
+*.egg-info/
+
+cache/
+debug/
