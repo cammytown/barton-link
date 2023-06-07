@@ -39,16 +39,16 @@ class BartonLink:
         # Load document
         document = self.gdocs.get_document(document_id)
 
-        # Parse document
-        insert_statement = self.gdocs.parse_document_into_insert_statement(document)
+        # # Parse document
+        # insert_statement = self.gdocs.parse_document_into_insert_statement(document)
         
-        # Insert document into database
-        self.db.c.execute(insert_statement)
-        rowcount = self.db.c.rowcount
-        self.db.conn.commit() #@REVISIT
+        # # Insert document into database
+        # self.db.c.execute(insert_statement)
+        # rowcount = self.db.c.rowcount
+        # self.db.conn.commit() #@REVISIT
 
-        # Print rowcount
-        print(f"Inserted {rowcount} rows into database.")
+        # # Print rowcount
+        # print(f"Inserted {rowcount} rows into database.")
 
 if __name__ == '__main__':
     barton_link = BartonLink()

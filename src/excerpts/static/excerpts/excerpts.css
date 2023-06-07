@@ -1,0 +1,46 @@
+body {
+	background: rgb(10, 10, 10);
+	color: rgb(205, 205, 205);
+}
+
+#content {
+	width: 900px;
+	margin: 0 auto;
+}
+
+a {
+	color: rgb(205, 205, 205);
+}
+
+a:hover {
+	color: rgb(255, 255, 255);
+}
+
+.disabled {
+	color: rgb(105, 105, 105);
+}
+
+.excerpt-single {
+	margin-bottom: 10px;
+}
+
+.excerpt-single a.excerpt {
+	text-decoration: none;
+}
+
+.tags {
+	font-size: 0.8em;
+}
+
+.tags a {
+	color: rgb(205, 105, 205);
+}
+
+.tags a:hover {
+	color: rgb(255, 105, 255);
+}
+
+.metadata {
+	color: rgb(105, 105, 105);
+	font-size: 0.7em;
+}

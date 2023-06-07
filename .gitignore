@@ -5,5 +5,7 @@ barton.db
 __pycache__/
 *.egg-info/
 
+# Temporaru
 cache/
 debug/
+db.sqlite3

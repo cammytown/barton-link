@@ -1,0 +1,18 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}{{ tag.name }}{% endblock %}
+
+{% block content %}
+
+<h2>{{ tag.name }}</h2>
+<p><a href="/excerpts/">Back to all excerpts</a></p>
+
+{% for excerpt in tag.excerpt_set.all %}
+<div>
+	{% include "excerpts/excerpt_list_single.html" with excerpt=excerpt %}
+</div>
+{% endfor %}
+
+<p><a href="/excerpts/">Back to all excerpts</a></p>
+
+{% endblock %}

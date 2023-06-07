@@ -1,0 +1,13 @@
+<div class="excerpt-single">
+	<a class="excerpt" href="/excerpts/excerpt/{{ excerpt.id }}/">{{ excerpt.excerpt }}</a>
+
+	<span class="tags">
+	{% for tag in excerpt.tags.all %}
+		<a href="/excerpts/tag/{{ tag.id }}/">{{ tag.name }}</a>
+	{% endfor %}
+	</span>
+
+	<span class="metadata">
+		{{ excerpt.metadata }}
+	</span>
+</div>

@@ -2,12 +2,15 @@ from __future__ import print_function
 
 import json
 import os.path
+import appdirs
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+# from .models import Excerpt, Tag
 
 class GDocs:
     creds: Credentials = None
@@ -18,11 +21,21 @@ class GDocs:
         'document_title': None,
         'heading_hierarchy': [],
         'current_heading': None,
-        'working_insert': None,
+        # 'working_insert': None,
+        'excerpts': [],
+        'category_excerpts': [],
     }
 
+    config_dir = appdirs.user_config_dir('barton-link', 'barton-link') + '/gdocs'
+
+    cache_dir = appdirs.user_cache_dir('barton-link', 'barton-link')
+
     def __init__(self):
-        pass
+        # Create config directory
+        os.makedirs(self.config_dir, exist_ok=True)
+
+        # Create cache directory
+        os.makedirs(self.cache_dir, exist_ok=True)
 
     def load_credentials(self):
         creds = self.creds
@@ -30,8 +43,8 @@ class GDocs:
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', self.scopes)
+        if os.path.exists(f'{self.config_dir}/token.json'):
+            creds = Credentials.from_authorized_user_file(f'{self.config_dir}/token.json', self.scopes)
 
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
@@ -39,11 +52,11 @@ class GDocs:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'config/.gdocs/client_secret.json', self.scopes)
+                    f'{self.config_dir}/client_secret.json', self.scopes)
                 creds = flow.run_local_server(port=0)
 
             # Save the credentials for the next run
-            with open('token.json', 'w') as token:
+            with open(f'{self.config_dir}/token.json', 'w') as token:
                 token.write(creds.to_json())
 
         self.creds = creds
@@ -52,17 +65,19 @@ class GDocs:
         # Check for existence of cached document (gdoc-{document_id}.json)
         #@TODO-4 we don't always want to use the cached document— maybe only for
         # things like failed operations, or if the document hasn't changed since
-        if os.path.exists(f'cache/gdoc-{document_id}.json'):
+        if os.path.exists(f'{self.cache_dir}/gdoc-{document_id}.json'):
             # Load cached document
             print('Loading cached document...')
 
             #@TODO use different path
-            with open(f'cache/gdoc-{document_id}.json', 'r') as f:
+            with open(f'{self.cache_dir}/gdoc-{document_id}.json', 'r') as f:
                 document = json.loads(f.read())
                 return document
 
         # If no cached document, retrieve document from Google Docs API
         else:
+            assert False, f'No cached document found at {self.cache_dir}/gdoc-{document_id}.json'
+
             try:
                 print('Loading document from Google Docs API...')
 
@@ -72,7 +87,7 @@ class GDocs:
                 document = service.documents().get(documentId=document_id).execute()
 
                 # Cache document
-                with open(f'cache/gdoc-{document_id}.json', 'w') as f:
+                with open(f'{self.cache_dir}/gdoc-{document_id}.json', 'w') as f:
                     f.write(json.dumps(document))
 
                 return document
@@ -92,8 +107,7 @@ class GDocs:
         # Parse document
         self.parse_document(document)
 
-    #@REVISIT naming
-    def parse_document_into_insert_statement(self, document):
+    def parse_document(self, document):
         doc_title = document.get('title')
 
         print(f'Parsing document: {doc_title}')
@@ -101,8 +115,10 @@ class GDocs:
         # Get document title
         self.state['document_title'] = doc_title
 
+        # Reset excerpts
+        self.state['excerpts'] = []
+
         # Loop through document body components
-        # for component in document.get('body').get('content'):
         # offset = 400
         for idx, component in enumerate(document.get('body').get('content')):
             # if idx < offset:
@@ -113,18 +129,45 @@ class GDocs:
             # if idx > offset + 20: #@
             #     break
 
-        # Remove trailing comma
-        self.state['working_insert'] = self.state['working_insert'][:-1]
+        # Add (reversed) category_excerpts to excerpts
+        self.state['excerpts'] += self.state['category_excerpts'][::-1]
 
-        return self.state['working_insert']
+        # Reset category_excerpts
+        self.state['category_excerpts'] = []
+
+        # # Remove trailing comma
+        # self.state['working_insert'] = self.state['working_insert'][:-1]
+
+        # return self.state['working_insert']
+        return self.state['excerpts']
+
+    #@REVISIT naming
+    # def parse_document_into_insert_statement(self, document):
+    #     doc_title = document.get('title')
+
+    #     print(f'Parsing document: {doc_title}')
+
+    #     # Get document title
+    #     self.state['document_title'] = doc_title
+
+    #     # Loop through document body components
+    #     # for component in document.get('body').get('content'):
+    #     # offset = 400
+    #     for idx, component in enumerate(document.get('body').get('content')):
+    #         # if idx < offset:
+    #         #     continue
+
+    #         self.parse_component(component)
+
+    #         # if idx > offset + 20: #@
+    #         #     break
+
+    #     # Remove trailing comma
+    #     self.state['working_insert'] = self.state['working_insert'][:-1]
+
+    #     return self.state['working_insert']
 
     def parse_component(self, component):
-        excerpt = {
-            'excerpt': '',
-            'tags': [],
-            'metadata': {},
-        }
-
         # Get content type (paragraph, table, etc.)
         content_type = None
         content_types = ['paragraph', 'table', 'tableOfContents', 'sectionBreak']
@@ -135,8 +178,19 @@ class GDocs:
 
         # If not paragraph
         if content_type != 'paragraph':
-            print(f'Content type {content_type} not supported yet.')
+            print(f'Ignoring {content_type}.')
             return
+
+        excerpt = self.parse_paragraph(component)
+
+        return excerpt
+
+    def parse_paragraph(self, component):
+        excerpt = {
+            'excerpt': '',
+            'tags': [],
+            'metadata': {},
+        }
 
         # Get component type
         component_type = component.get('paragraph') \
@@ -193,8 +247,11 @@ class GDocs:
         component_text = component_text.replace('\v', '\n')
 
         # Check if bullet
-        if component.get('paragraph').get('bullet'):
-            pass
+        nesting_level = None #@REVISIT had it as 0 but get('nestingLevel') returns None
+        bullet = component.get('paragraph').get('bullet')
+        if bullet:
+            # Get bullet nesting level
+            nesting_level = bullet.get('nestingLevel')
 
         # Check if heading (if starts within HEADING_*)
         if component_type.startswith('HEADING_'):
@@ -209,19 +266,41 @@ class GDocs:
 
         # Check if normal text
         elif component_type == 'NORMAL_TEXT':
+            # If empty string, skip
+            if not component_text:
+                return
+
+            # If excerpt is nested under another
+            if nesting_level:
+                # Add to previous excerpt
+                #@REVISIT architecture
+                self.state['category_excerpts'][-1]['excerpt'] += '\n===\n' \
+                        + component_text
+                return
+
             # Remove empty heading levels
             tags = [tag for tag in self.state['heading_hierarchy'] if tag]
 
-            # Build SQL insert statement
-            excerpt['excerpt'] = component_text
-            excerpt['tags'] = tags
-            excerpt['metadata'] = {
+            # Add document title as tag
+            tags.append(self.state['document_title'])
+
+            metadata = {
                 'origin': f'gdocs >> {self.state["document_title"]}' \
                         ' >> {}' \
                         .format(' >> '.join(tags)),
             }
 
-            self.build_insert_statement(excerpt)
+            excerpt['excerpt'] = component_text
+            excerpt['tags'] = tags
+            excerpt['metadata'] = metadata
+
+            # Add to working excerpts
+            self.state['category_excerpts'].append(excerpt)
+
+            # return excerpt
+
+            # self.insert_excerpt(component_text, tags, metadata)
+            # self.build_insert_statement(excerpt)
 
         else:
             print(f'Unknown component type: {component_type}')
@@ -232,46 +311,84 @@ class GDocs:
         # print('Heading hierarchy: {}'.format(self.state['heading_hierarchy']))
         # print('Current heading: {}'.format(self.state['current_heading']))
 
-    def build_insert_statement(self, excerpt):
-        insert_statement = self.state['working_insert']
+    # def insert_excerpt(self, excerpt_text, tags, metadata):
+    #     # If excerpt is empty
+    #     if excerpt_text == '':
+    #         # Skip excerpt
+    #         return
 
-        # If an insert statement has not been started
-        if insert_statement is None:
-            # Begin SQL insert statement
-            insert_statement = 'INSERT INTO excerpts (excerpt, tags, metadata) VALUES '
+    #     # Get Tag objects
+    #     tags = [Tag.objects.get_or_create(name=tag)[0] for tag in tags]
 
-        # Validate excerpt for SQL
-        # If excerpt is empty
-        if excerpt['excerpt'] == '':
-            # Skip excerpt
-            return
+    #     excerpt = Excerpt(excerpt=excerpt_text, metadata=metadata)
+    #     excerpt.save()
 
-        # If excerpt is too long
-        if len(excerpt['excerpt']) > 1000:
-            # Skip excerpt
-            print(f'WARNING: Excerpt too long: {excerpt["excerpt"]}')
-            return
+    #     # Add tags to excerpt
+    #     excerpt.tags.add(*tags)
 
-        # Escape single quotes
-        excerpt['excerpt'] = excerpt['excerpt'].replace("'", "''")
+    #     # If excerpt is too long
+    #     if len(excerpt['excerpt']) > 1000:
+    #         # Skip excerpt
+    #         print(f'WARNING: Excerpt too long: {excerpt["excerpt"]}')
+    #         return
 
-        # Add excerpt to insert statement
-        insert_statement += f"\n('{excerpt['excerpt']}', " \
-                f"'{json.dumps(excerpt['tags'])}', " \
-                f"'{json.dumps(excerpt['metadata'])}'),"
+    #     Escape single quotes
+    #     excerpt['excerpt'] = excerpt['excerpt'].replace("'", "''")
 
-        # Save working insert statement
-        self.state['working_insert'] = insert_statement
+    #     Build SQL insert statement
+    #     insert_statement = 'INSERT INTO excerpts (excerpt, tags, metadata) VALUES ' \
+    #             f"\n('{excerpt['excerpt']}', " \
+    #             f"'{json.dumps(excerpt['tags'])}', " \
+    #             f"'{json.dumps(excerpt['metadata'])}');\n"
 
-        #@
-        # # If insert statement is too long
-        # if len(insert_statement) > 1000:
+    # def build_insert_statement(self, excerpt):
+    #     insert_statement = self.state['working_insert']
 
-        return insert_statement
+    #     # If an insert statement has not been started
+    #     if insert_statement is None:
+    #         # Begin SQL insert statement
+    #         insert_statement = 'INSERT INTO excerpts (excerpt, tags, metadata) VALUES '
+
+    #     # Validate excerpt for SQL
+    #     # If excerpt is empty
+    #     if excerpt['excerpt'] == '':
+    #         # Skip excerpt
+    #         return
+
+    #     # If excerpt is too long
+    #     if len(excerpt['excerpt']) > 1000:
+    #         # Skip excerpt
+    #         print(f'WARNING: Excerpt too long: {excerpt["excerpt"]}')
+    #         return
+
+    #     # Escape single quotes
+    #     excerpt['excerpt'] = excerpt['excerpt'].replace("'", "''")
+
+    #     # Add excerpt to insert statement
+    #     insert_statement += f"\n('{excerpt['excerpt']}', " \
+    #             f"'{json.dumps(excerpt['tags'])}', " \
+    #             f"'{json.dumps(excerpt['metadata'])}'),"
+
+    #     # Save working insert statement
+    #     self.state['working_insert'] = insert_statement
+
+    #     #@
+    #     # # If insert statement is too long
+    #     # if len(insert_statement) > 1000:
+
+    #     return insert_statement
 
     def update_heading(self, heading, level):
         # Reduce level by 1 (first gdocs heading is level 1, we want 0)
         level -= 1
+
+        # Reverse category_excerpts and add to excerpts
+        #@TODO-3 this is specific to our purposes of vaguely attempting to
+        # vaguely add entries in the order we added them to the document
+        self.state['excerpts'] += self.state['category_excerpts'][::-1]
+
+        # Reset category_excerpts
+        self.state['category_excerpts'] = []
 
         # If level is 0, reset heading hierarchy
         if level == 0:

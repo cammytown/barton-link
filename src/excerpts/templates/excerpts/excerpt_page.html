@@ -1,0 +1,15 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}{{ excerpt.excerpt }}{% endblock %}
+
+{% block content %}
+
+<p>{{ excerpt.excerpt }}</p>
+<p>{{ excerpt.tags.all }}</p>
+<p>{{ excerpt.metadata }}</p>
+
+<p><a href="/excerpts/excerpt/{{ excerpt.id }}/edit/">Edit</a></p>
+<p><a href="/excerpts/excerpt/{{ excerpt.id }}/delete/">Delete</a></p>
+<p><a href="/excerpts/">Back to all excerpts</a></p>
+
+{% endblock %}
