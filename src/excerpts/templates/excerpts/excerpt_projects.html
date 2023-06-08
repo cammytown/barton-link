@@ -13,6 +13,7 @@
 
 	<div class="unused-projects">
 		{% for project in excerpt.unused_projects %}
+		<div class="block project">
 			<a
 				hx-post="/excerpts/excerpt/{{ excerpt.id }}/add_project/{{ project.id }}/"
 				hx-trigger="click"
@@ -20,6 +21,7 @@
 			>
 				{{ project.name }}
 			</a>
+		</div>
 		{% endfor %}
 	</div>
 </div>
