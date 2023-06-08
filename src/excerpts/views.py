@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 # from barton_link.gdocs import GDocs
 # from barton_link.barton_link import BartonLink
 from barton_link.gdocs import GDocs
-from .models import Excerpt, Tag
+from .models import Excerpt, Tag, Project, Character
 
 def index(request, page_num=1):
     results_per_page = 50
@@ -29,13 +29,94 @@ def index(request, page_num=1):
 
 def excerpt(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
-    context = { "excerpt": excerpt, }
+
+    context = { "excerpt": excerpt }
     return render(request, "excerpts/excerpt_page.html", context)
+
+def edit(request, excerpt_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+
+    context = { "excerpt": excerpt }
+    return render(request, "excerpts/edit_page.html", context)
+
+def add_tag(request, excerpt_id, tag_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+    tag = Tag.objects.get(id=tag_id)
+
+    excerpt.tags.add(tag)
+
+    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt, })
+
+def remove_tag(request, excerpt_id, tag_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+    tag = Tag.objects.get(id=tag_id)
+
+    excerpt.tags.remove(tag)
+
+    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt, })
+
+def add_project(request, excerpt_id, project_id=None):
+    """
+    Add a project to an excerpt.
+
+    If a project_id is provided, add the project with that id to the excerpt.
+    Otherwise, create a new project and add it to the excerpt.
+    """
+
+    # Get excerpt
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+
+    # If project_id is provided
+    if project_id:
+        # Get project
+        #@TODO Handle case where project_id is invalid
+        project = Project.objects.get(id=project_id)
+
+        # Add project to excerpt
+        excerpt.projects.add(project)
+
+        return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
+
+    else:
+        # If request is POST
+        if request.method == "POST":
+            # Get project_name from POST
+            project_name = request.POST["project_name"]
+
+            # Create project
+            project = Project(name=project_name)
+            project.save()
+
+            # Add project to excerpt
+            excerpt.projects.add(project)
+
+            return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
+
+        # If request is GET
+        elif request.method == "GET":
+            # Render add project form
+            return render(request, "excerpts/add_project.html", { "excerpt": excerpt, })
+
+        else:
+            #@REVISIT
+            return HttpResponse("Invalid request method.")
+
+def remove_project(request, excerpt_id, project_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+    project = Project.objects.get(id=project_id)
+
+    excerpt.projects.remove(project)
+
+    return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
 
 def tag(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
     context = { "tag": tag, }
     return render(request, "excerpts/tag_page.html", context)
+
+
+
+
 
 def test(request):
     #@TEMPORARY

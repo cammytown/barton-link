@@ -1,0 +1,24 @@
+<div class="blocks tags" hx-target="this" hx-swap="outerHTML">
+	<div class="excerpt-tags">
+		{% for tag in excerpt.tags.all %}
+			<a
+				hx-post="/excerpts/excerpt/{{ excerpt.id }}/remove_tag/{{ tag.id }}/"
+				hx-trigger="click"
+			>
+				{{ tag.name }}
+			</a>
+		{% endfor %}
+	</div>
+
+	<div class="unused-tags">
+		{% for tag in excerpt.unused_tags %}
+			<a
+				hx-post="/excerpts/excerpt/{{ excerpt.id }}/add_tag/{{ tag.id }}/"
+				hx-trigger="click"
+				class="inactive"
+			>
+				{{ tag.name }}
+			</a>
+		{% endfor %}
+	</div>
+</div>

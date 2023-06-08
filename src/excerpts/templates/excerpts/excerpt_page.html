@@ -2,14 +2,40 @@
 
 {% block title %}{{ excerpt.excerpt }}{% endblock %}
 
+{% block content_class %}excerpt_page{% endblock %}
+
 {% block content %}
 
-<p>{{ excerpt.excerpt }}</p>
-<p>{{ excerpt.tags.all }}</p>
-<p>{{ excerpt.metadata }}</p>
+<div class="excerpt">{{ excerpt.excerpt|linebreaks }}</div>
 
-<p><a href="/excerpts/excerpt/{{ excerpt.id }}/edit/">Edit</a></p>
-<p><a href="/excerpts/excerpt/{{ excerpt.id }}/delete/">Delete</a></p>
+<h3>Tags</h3>
+{% include "excerpts/excerpt_tags.html" %}
+
+<input type="text" placeholder="Search unused tags…">
+
+<h3>Projects</h3>
+{% include "excerpts/excerpt_projects.html" %}
+
+<a
+	class="add"
+	hx-get="/excerpts/excerpt/{{ excerpt.id }}/add_project/"
+	hx-trigger="click"
+	hx-target="this"
+	hx-swap="outerHTML"
+>
+	Add project
+</a>
+
+
+{% comment %}<h3>Metadata</h3>{% endcomment %}
+{% comment %}<p>{{ excerpt.metadata }}</p>{% endcomment %}
+
+<h3>Controls</h3>
+<div class="controls">
+	<a class="edit" href="/excerpts/excerpt/{{ excerpt.id }}/edit/">Edit</a>
+	<a class="delete" href="/excerpts/excerpt/{{ excerpt.id }}/delete/">Delete</a>
+</div>
+
 <p><a href="/excerpts/">Back to all excerpts</a></p>
 
 {% endblock %}

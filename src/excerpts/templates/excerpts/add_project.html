@@ -1,0 +1,16 @@
+<form
+	method="post"
+	hx-post="/excerpts/excerpt/{{ excerpt.id }}/add_project/"
+	hx-target="this"
+	hx-swap="innerHTML"
+>
+	<input
+		type="text"
+		name="project_name"
+		id="project_name"
+		placeholder="Project name"
+		value=""
+	/>
+
+	<input type="submit" value="Add project" />
+</form>

@@ -3,13 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<title>{% block title %}{% endblock %}</title>
+
 	{% load static %}
+
 	<link rel="stylesheet" href="{% static 'excerpts/excerpts.css' %}">
+	<script src="{% static 'excerpts/htmx.min.js' %}"></script>
+
 	{% block head %}{% endblock %}
 </head>
 
-<body>
-	<div id="content">
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+	<div id="content" class="{% block content_class %}{% endblock %}">
 		{% block content %}{% endblock %}
 	</div>
 </body>

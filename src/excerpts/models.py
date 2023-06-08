@@ -38,6 +38,12 @@ class Excerpt(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def unused_tags(self):
+        return Tag.objects.exclude(excerpt__id=self.id)
+
+    def unused_projects(self):
+        return Project.objects.exclude(excerpt__id=self.id)
+
     def __str__(self):
         return self.excerpt
 
