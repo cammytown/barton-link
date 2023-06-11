@@ -19,6 +19,15 @@ googledocs = [
 	"google-auth-httplib2",
 	"google-auth-oauthlib"
 ]
+similarity = [
+	"sentence-transformers"
+]
+all = [
+	"google-api-python-client",
+	"google-auth-httplib2",
+	"google-auth-oauthlib",
+	"sentence-transformers"
+]
 
 [build-system]
 requires = ["setuptools >= 67.7.2", "wheel >= 0.40.0"]

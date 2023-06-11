@@ -47,6 +47,15 @@ class Excerpt(models.Model):
     def __str__(self):
         return self.excerpt
 
+class ExcerptSimilarity(models.Model):
+    excerpt1 = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='excerpt1')
+    excerpt2 = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='excerpt2')
+
+    sbert_similarity = models.FloatField()
+    # spacy_similarity = models.FloatField()
+
+    def __str__(self):
+        return f"{self.excerpt1} - {self.excerpt2}: {self.similarity}"
 
 # class BartonConfig:
 #     id = models.IntegerField(primary_key=True)

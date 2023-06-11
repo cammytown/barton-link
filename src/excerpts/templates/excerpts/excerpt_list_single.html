@@ -5,7 +5,7 @@
 
 	<span class="blocks tags">
 	{% for tag in excerpt.tags.all %}
-		<a href="/excerpts/tag/{{ tag.id }}/">{{ tag.name }}</a>
+		<a class="block tag" href="/excerpts/tag/{{ tag.id }}/">{{ tag.name }}</a>
 	{% endfor %}
 	</span>
 </div>
