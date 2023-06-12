@@ -6,11 +6,26 @@
 	<h1>Excerpts</h1>
 
 	<form
-		hx-get="{% url 'search' %}"
+		hx-get="{% url 'search' %}?page={{ page_obj.number }}"
 		hx-target="#excerpt-list"
+		hx-trigger="change"
 	>
-		<input type="text" name="search" placeholder="Search" />
-		<input type="submit" value="Search" />
+		<input
+			type="text"
+			name="search"
+			placeholder="Search"
+			value="{{ search }}"
+		/>
+
+		<select name="page_size">
+			{% for page_size_option in page_sizes %}
+				<option value="{{ page_size_option }}"{% if page_size_option == page_size %} selected{% endif %}>
+					{{ page_size_option }}
+				</option>
+			{% endfor %}
+		</select>
+
+		{% comment %}<input type="submit" value="Search" />{% endcomment %}
 	</form>
 
 	<div id="excerpt-list">

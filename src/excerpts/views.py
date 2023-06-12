@@ -16,6 +16,7 @@ def index(request):
 
 def search(request):
     page_num = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 50)
 
     # Extract search field and filters
     search = request.GET.get("search", "")
@@ -24,8 +25,7 @@ def search(request):
     excerpts = Excerpt.objects.filter(excerpt__icontains=search)
     # excerpts = Excerpt.objects.order_by("-id")
 
-    results_per_page = 10
-    paginator = Paginator(excerpts, results_per_page)
+    paginator = Paginator(excerpts, page_size)
     page_obj = paginator.get_page(page_num)
 
     # Build previous and next page links
@@ -50,6 +50,8 @@ def search(request):
         "page_obj": page_obj,
         "prev_page_url": prev_page_url,
         "next_page_url": next_page_url,
+        "page_sizes": [10, 25, 50, 100],
+        "page_size": page_size,
         "search": search,
         }
 
