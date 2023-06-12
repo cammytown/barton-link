@@ -1,5 +1,8 @@
 Under heavy development.
 
+# Barton Link
+## Search and filter your revelations.
+
 Barton Link is a tool for writers to organize excerpts of writing before (and after) they have been used in a writer's larger work.
 
 Setup

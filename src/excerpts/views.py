@@ -3,7 +3,7 @@
 from django.http import HttpResponse
 from django.urls import reverse
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 
 # from barton_link.gdocs import GDocs
@@ -62,14 +62,32 @@ def search(request):
 def excerpt(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
 
-    context = { "excerpt": excerpt }
-    return render(request, "excerpts/excerpt_page.html", context)
+    # If GET request
+    if request.method == "GET":
+        context = { "excerpt": excerpt }
+        return render(request, "excerpts/excerpt_page.html", context)
+
+    # If DELETE request
+    elif request.method == "DELETE":
+        # excerpt.delete()
+        return HttpResponse(status=204)
 
 def edit(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
 
     context = { "excerpt": excerpt }
     return render(request, "excerpts/edit_page.html", context)
+
+def delete(request, excerpt_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+
+    # Mark excerpt as deleted
+    #@TODO-3: maintenance op to actually delete excerpts marked as deleted
+    excerpt.is_deleted = True
+    excerpt.save()
+
+    # Redirect to search page
+    return redirect("search")
 
 def add_tag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
