@@ -61,7 +61,7 @@ class BartonLink:
         # Return the similarity
         return similarity
 
-    def measure_excerpt_similarity_sbert(self, excerpt1, excerpt2):
+    def measure_similarity_sbert(self, excerpt1, excerpt2):
         # Use SentenceTransformer to measure similarity
         assert self.sbert is not None
 

@@ -1,0 +1,19 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Excerpts{% endblock %}
+
+{% block content %}
+	<h1>Excerpts</h1>
+
+	<form
+		hx-get="{% url 'search' %}"
+		hx-target="#excerpt-list"
+	>
+		<input type="text" name="search" placeholder="Search" />
+		<input type="submit" value="Search" />
+	</form>
+
+	<div id="excerpt-list">
+		{% include "excerpts/excerpt_list.html" %}
+	</div>
+{% endblock %}

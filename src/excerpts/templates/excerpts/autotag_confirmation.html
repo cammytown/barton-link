@@ -1,0 +1,11 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Confirm Auto-Tagging{% endblock %}
+
+{% block content %}
+	<h1>Confirm Auto-Tagging</h1>
+
+	{% for autotag in autotags %}
+	<p>{{ autotag.excerpt }} - {{ autotag.tag }} - {{ autotag.similarity }}</p>
+	{% endfor %}
+{% endblock %}

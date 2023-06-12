@@ -1,6 +1,7 @@
 # from django.shortcuts import render
 
 from django.http import HttpResponse
+from django.urls import reverse
 from django.template import loader
 from django.shortcuts import render
 from django.core.paginator import Paginator
@@ -10,22 +11,53 @@ from barton_link.barton_link import BartonLink
 from barton_link.gdocs import GDocs
 from .models import Excerpt, Tag, Project, Character, ExcerptSimilarity
 
-def index(request, page_num=1):
-    results_per_page = 50
-    # start_idx = (page_num - 1) * results_per_page
-    # end_idx = start_idx + results_per_page
+def index(request):
+    return search(request)
 
-    # latest_excerpts = Excerpt.objects.order_by("-id")[start_idx:end_idx]
-    latest_excerpts = Excerpt.objects.order_by("-id")
-    paginator = Paginator(latest_excerpts, results_per_page)
+def search(request):
+    page_num = request.GET.get("page", 1)
 
+    # Extract search field and filters
+    search = request.GET.get("search", "")
+
+    # Search for excerpts
+    excerpts = Excerpt.objects.filter(excerpt__icontains=search)
+    # excerpts = Excerpt.objects.order_by("-id")
+
+    results_per_page = 10
+    paginator = Paginator(excerpts, results_per_page)
     page_obj = paginator.get_page(page_num)
 
-    context = {
-            "page_obj": page_obj,
-            }
+    # Build previous and next page links
+    prev_page_url = None
+    next_page_url = None
 
-    return render(request, "excerpts/index.html", context)
+    if page_obj.has_previous():
+        prev_page_url = reverse("search") + f"?page={page_obj.previous_page_number()}"
+
+        if search:
+            prev_page_url += f"&search={search}"
+
+    if page_obj.has_next():
+        next_page_url = reverse("search") + f"?page={page_obj.next_page_number()}"
+
+        if search:
+            next_page_url += f"&search={search}"
+
+    # Render list
+    context = {
+        "excerpts": excerpts,
+        "page_obj": page_obj,
+        "prev_page_url": prev_page_url,
+        "next_page_url": next_page_url,
+        "search": search,
+        }
+
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "excerpts/excerpt_list.html", context)
+    else:
+        return render(request, "excerpts/excerpt_search.html", context)
 
 def excerpt(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -113,6 +145,59 @@ def tag(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
     context = { "tag": tag, }
     return render(request, "excerpts/tag_page.html", context)
+
+def autotag_excerpts(request):
+    """
+    Autotag excerpts.
+
+    Present user with confirmation page before proceeding.
+    """
+
+    barton_link = BartonLink()
+
+    # Get all excerpts, order by ascending id
+    excerpts = Excerpt.objects.order_by("id")
+
+    # Get all tags
+    tags = Tag.objects.all()
+
+    autotags = []
+
+    # For each excerpt
+    for excerpt in excerpts:
+        # Get excerpt text
+        excerpt_text = excerpt.excerpt
+
+        # For each tag
+        for tag in tags:
+            # Check if tag is already in excerpt
+            if tag in excerpt.tags.all():
+                continue
+
+            # Get tag name
+            tag_name = tag.name
+
+            # If tag name is in excerpt text
+            if tag_name in excerpt_text:
+                # Measure semantic similarity between tag name and excerpt text
+                similarity = barton_link.measure_similarity_sbert(tag_name, excerpt_text)
+
+                # If similarity is above threshold
+                if similarity > 0.7:
+                    # Add tag to excerpt
+                    # excerpt.tags.add(tag)
+                    autotags.append({
+                        "excerpt": excerpt,
+                        "tag": tag,
+                        "similarity": similarity,
+                        })
+
+        if len(autotags) > 0:
+            break
+
+    context = { "autotags": autotags, }
+
+    return render(request, "excerpts/autotag_confirmation.html", context)
 
 def analyze_similarities(request):
     """

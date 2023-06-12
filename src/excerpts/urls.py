@@ -15,9 +15,11 @@ excerpt_patterns = [
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("<int:page_num>/", views.index, name="index"),
+    path("search/", views.search, name="search"),
+    # path("<int:page_num>/", views.index, name="index"),
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
     path("tag/<int:tag_id>/", views.tag, name="tag"),
+    path("autotag/", views.autotag_excerpts, name="autotag"),
     path("analyze-similarities/", views.analyze_similarities, name="analyze_similarities"),
     # path("test/", views.test, name="test"),
 ]
