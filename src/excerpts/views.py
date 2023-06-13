@@ -1,6 +1,6 @@
 # from django.shortcuts import render
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.urls import reverse
 from django.template import loader
 from django.shortcuts import render, redirect
@@ -9,7 +9,14 @@ from django.core.paginator import Paginator
 # from barton_link.gdocs import GDocs
 from barton_link.barton_link import BartonLink
 from barton_link.gdocs import GDocs
-from .models import Excerpt, Tag, Project, Character, ExcerptSimilarity
+
+from .models import \
+        Excerpt,\
+        ExcerptVersion,\
+        ExcerptSimilarity,\
+        Tag,\
+        Project,\
+        Character
 
 barton_link = BartonLink()
 
@@ -24,7 +31,7 @@ def search(request):
     search = request.GET.get("search", "")
 
     # Search for excerpts
-    excerpts = Excerpt.objects.filter(excerpt__icontains=search)
+    excerpts = Excerpt.objects.filter(content__icontains=search)
     # excerpts = Excerpt.objects.order_by("-id")
 
     paginator = Paginator(excerpts, page_size)
@@ -81,8 +88,49 @@ def excerpt(request, excerpt_id):
 def edit(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
 
-    context = { "excerpt": excerpt }
-    return render(request, "excerpts/edit_page.html", context)
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        # If GET request
+        if request.method == "GET":
+            context = { "excerpt": excerpt }
+            return render(request, "excerpts/excerpt_editor.html", context)
+
+        # If PUT request
+        elif request.method == "PUT":
+            # Parse HTMX PUT request
+            request_data = QueryDict(request.body)
+
+            # Extract excerpt text
+            excerpt_text = request_data.get("excerpt_content")
+
+            # Update excerpt text
+            excerpt.content = excerpt_text
+            excerpt.save()
+
+            # Create new version
+            ExcerptVersion.objects.create(excerpt=excerpt, content=excerpt_text)
+
+            # Render excerpt
+            context = { "excerpt": excerpt }
+            return render(request, "excerpts/excerpt.html", context)
+
+    else:
+        # If GET request
+        if request.method == "GET":
+            context = { "excerpt": excerpt }
+            return render(request, "excerpts/edit_page.html", context)
+
+        # # If POST request
+        # elif request.method == "POST":
+        #     # Extract excerpt text
+        #     excerpt_text = request.POST.get("excerpt")
+
+        #     # Update excerpt text
+        #     excerpt.content = excerpt_text
+        #     excerpt.save()
+
+        #     # Redirect to excerpt page
+        #     return redirect("excerpt", excerpt_id=excerpt_id)
 
 def delete(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -195,6 +243,8 @@ def tag(request, tag_id):
     return render(request, "excerpts/tag_page.html", context)
 
 def autotag_excerpts(request, excerpt_id=None):
+    barton_link.load_nlp_models() #@REVISIT architecture
+
     # Get excerpts
     if excerpt_id:
         # Get excerpt with id
@@ -210,7 +260,7 @@ def autotag_excerpts(request, excerpt_id=None):
         # excerpts = Excerpt.objects.order_by("id")
 
     # Build list of excerpt texts
-    excerpt_texts = [excerpt.excerpt for excerpt in excerpts]
+    excerpt_texts = [excerpt.content for excerpt in excerpts]
 
     # Get tags
     tags = Tag.objects.all()
@@ -299,7 +349,7 @@ def autotag_excerpts(request, excerpt_id=None):
 #     tags = Tag.objects.all()
 
 #     # Get excerpt text
-#     excerpt_text = excerpt.excerpt
+#     excerpt_text = excerpt.content
 #     excerpt_autotag_objs = []
 
 #     print(f"Autotagging excerpt {excerpt.id}...", end="\r")
@@ -339,6 +389,8 @@ def analyze_similarities(request):
     Analyze similarities between excerpts using NLP.
     """
 
+    barton_link.load_nlp_models() #@REVISIT architecture
+
     created_count = 0
 
     # Get all excerpts, order by ascending id
@@ -347,7 +399,7 @@ def analyze_similarities(request):
     # For each excerpt
     for excerpt in excerpts:
         # Get excerpt text
-        excerpt_text = excerpt.excerpt
+        excerpt_text = excerpt.content
 
         # For each other excerpt
         for other_excerpt in excerpts[excerpt.id:]:
@@ -362,7 +414,7 @@ def analyze_similarities(request):
             assert other_excerpt.id > excerpt.id
 
             # Get other_excerpt text
-            other_excerpt_text = other_excerpt.excerpt
+            other_excerpt_text = other_excerpt.content
 
             # Measure similarities
             sbert_similarity = barton_link.measure_excerpt_similarity_sbert(
@@ -396,6 +448,7 @@ def analyze_similarities(request):
                     excerpt1=excerpt,
                     excerpt2=other_excerpt,
                     )
+
             if similarity_entry:
                 # Check for differing similarity values
                 if similarity_entry.sbert_similarity != sbert_similarity:
@@ -460,7 +513,7 @@ def gdocs_test(request):
         excerpt_dicts = gdocs.parse_document(document)
 
         # Turn excerpt_dicts into Excerpt instances
-        excerpts = []
+        excerpt_objs = []
         for exc_idx, excerpt_dict in enumerate(excerpt_dicts):
             # Check if excerpt already exists in database
             if Excerpt.objects.filter(
@@ -476,19 +529,40 @@ def gdocs_test(request):
                 # Skip to next excerpt
                 continue
 
-            # print(f"Excerpt does not exist in database: {excerpt_dict['excerpt']}")
+            # If excerpt does not exist in database
+            else:
+                # print(f"Excerpt does not exist in database: {excerpt_dict['excerpt']}")
 
-            # Create Excerpt instance
-            #@REVISIT architecture
-            excerpt_dict["excerpt_instance"] = Excerpt(
-                excerpt=excerpt_dict["excerpt"],
-                metadata=excerpt_dict["metadata"],
-            )
+                # Create Excerpt instance
+                #@REVISIT architecture
+                excerpt_dict["excerpt_instance"] = Excerpt(
+                    excerpt=excerpt_dict["excerpt"],
+                    metadata=excerpt_dict["metadata"],
+                )
 
-            excerpts.append(excerpt_dict["excerpt_instance"])
+                excerpt_objs.append(excerpt_dict["excerpt_instance"])
 
         # Insert excerpts into database
-        Excerpt.objects.bulk_create(excerpts)
+        excerpts = Excerpt.objects.bulk_create(excerpt_objs)
+
+        # Create ExcerptVersion instances
+        for excerpt_dict in excerpt_dicts:
+            # If excerpt_instance is None
+            if not excerpt_dict["excerpt_instance"]:
+                # Skip to next excerpt
+                #@REVISIT architecture
+                continue
+
+            excerpt = excerpt_dict["excerpt_instance"]
+
+            # Create ExcerptVersion instance
+            excerpt_version = ExcerptVersion(
+                    excerpt=excerpt,
+                    version=excerpt_dict["version"],
+                    )
+
+            # Save ExcerptVersion instance
+            excerpt_version.save()
 
         # Add tags to excerpts
         for excerpt_dict in excerpt_dicts:

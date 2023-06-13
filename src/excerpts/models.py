@@ -49,8 +49,7 @@ class ExcerptTag(models.Model):
         return f"{self.excerpt} - {self.tag}"
 
 class Excerpt(SoftDeleteModel):
-    excerpt = models.TextField()
-
+    content = models.TextField()
     tags = models.ManyToManyField(Tag, through='ExcerptTag')
     characters = models.ManyToManyField(Character)
     projects = models.ManyToManyField(Project)
@@ -66,8 +65,23 @@ class Excerpt(SoftDeleteModel):
     def unused_projects(self):
         return Project.objects.exclude(excerpt__id=self.id)
 
+    # def save(self, *args, **kwargs):
+    #     super(Excerpt, self).save(*args, **kwargs)
+
+    #     # Create version if this is a new excerpt
+    #     if not self.versions.exists():
+    #         ExcerptVersion.objects.create(excerpt=self, content=self.content)
+
     def __str__(self):
-        return self.excerpt
+        return self.content
+
+class ExcerptVersion(models.Model):
+    excerpt = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='versions')
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.excerpt} - {self.created}"
 
 class ExcerptSimilarity(models.Model):
     excerpt1 = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='excerpt1')

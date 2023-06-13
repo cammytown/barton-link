@@ -1,6 +1,6 @@
 <div class="excerpt-list-single">
-	<a class="excerpt" href="/excerpts/excerpt/{{ excerpt.id }}/">
-		{{ excerpt.excerpt|linebreaksbr }}
+	<a class="excerpt" href="/excerpts/excerpt/{{ excerpt.id }}">
+		{{ excerpt.content|linebreaksbr }}
 	</a>
 
 	{% include "excerpts/excerpt_tags.html" with show_unused_tags=False %}

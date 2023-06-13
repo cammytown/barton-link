@@ -1,0 +1,9 @@
+<ul>
+{% for version in excerpt.versions.all %}
+	<li>
+		<a href="/excerpts/excerpt/{{ excerpt.id }}/version/{{ version.id }}">
+			{{ version.content }}
+		</a>
+	</li>
+{% endfor %}
+</ul>

@@ -1,0 +1,11 @@
+<form
+	class="excerpt editor"
+	hx-put="/excerpts/excerpt/{{ excerpt.id }}/edit"
+	hx-target="this"
+	hx-swap="outerHTML"
+>
+	{% comment %}<input name="excerpt" value="{{ excerpt.content }}" />{% endcomment %}
+	<textarea name="excerpt_content">{{ excerpt.content }}</textarea>
+
+	<button type="submit">Save</button>
+</form>

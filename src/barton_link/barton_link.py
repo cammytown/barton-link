@@ -20,19 +20,21 @@ class BartonLink:
         # self.db.test_database()
         # self.db.close_database()
 
-        self.load_nlp_models()
+        # self.load_nlp_models()
+        pass
 
     def load_nlp_models(self):
-        print("Loading NLP model...")
-
         # Load the NLP model
-        self.spacy_model = spacy.load("en_core_web_lg")
-        # self.nlp = spacy.load("en_core_web_trf")
+        if not self.spacy_model:
+            print("Loading NLP model...")
+            self.spacy_model = spacy.load("en_core_web_lg")
+            # self.nlp = spacy.load("en_core_web_trf")
 
-        print("Loading SentenceTransformer model...")
-        # Load the SentenceTransformer model
-        # self.sbert = SentenceTransformer("all-mpnet-base-v2")
-        self.sbert = SentenceTransformer("all-MiniLM-L6-v2")
+        if not self.sbert:
+            # Load the SentenceTransformer model
+            print("Loading SentenceTransformer model...")
+            # self.sbert = SentenceTransformer("all-mpnet-base-v2")
+            self.sbert = SentenceTransformer("all-MiniLM-L6-v2")
 
     def measure_excerpt_similarity(self, excerpt1, excerpt2, engine="sbert"):
         """

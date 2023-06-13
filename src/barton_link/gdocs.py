@@ -187,7 +187,7 @@ class GDocs:
 
     def parse_paragraph(self, component):
         excerpt = {
-            'excerpt': '',
+            'content': '',
             'tags': [],
             'metadata': {},
         }
@@ -274,7 +274,7 @@ class GDocs:
             if nesting_level:
                 # Add to previous excerpt
                 #@REVISIT architecture
-                self.state['category_excerpts'][-1]['excerpt'] += '\n===\n' \
+                self.state['category_excerpts'][-1]['content'] += '\n===\n' \
                         + component_text
                 return
 
@@ -290,7 +290,7 @@ class GDocs:
                         .format(' >> '.join(tags)),
             }
 
-            excerpt['excerpt'] = component_text
+            excerpt['content'] = component_text
             excerpt['tags'] = tags
             excerpt['metadata'] = metadata
 
@@ -329,15 +329,15 @@ class GDocs:
     #     # If excerpt is too long
     #     if len(excerpt['excerpt']) > 1000:
     #         # Skip excerpt
-    #         print(f'WARNING: Excerpt too long: {excerpt["excerpt"]}')
+    #         print(f'WARNING: Excerpt too long: {excerpt["content"]}')
     #         return
 
     #     Escape single quotes
-    #     excerpt['excerpt'] = excerpt['excerpt'].replace("'", "''")
+    #     excerpt['content'] = excerpt['content'].replace("'", "''")
 
     #     Build SQL insert statement
     #     insert_statement = 'INSERT INTO excerpts (excerpt, tags, metadata) VALUES ' \
-    #             f"\n('{excerpt['excerpt']}', " \
+    #             f"\n('{excerpt['content']}', " \
     #             f"'{json.dumps(excerpt['tags'])}', " \
     #             f"'{json.dumps(excerpt['metadata'])}');\n"
 
@@ -351,21 +351,21 @@ class GDocs:
 
     #     # Validate excerpt for SQL
     #     # If excerpt is empty
-    #     if excerpt['excerpt'] == '':
+    #     if excerpt['content'] == '':
     #         # Skip excerpt
     #         return
 
     #     # If excerpt is too long
-    #     if len(excerpt['excerpt']) > 1000:
+    #     if len(excerpt['content']) > 1000:
     #         # Skip excerpt
-    #         print(f'WARNING: Excerpt too long: {excerpt["excerpt"]}')
+    #         print(f'WARNING: Excerpt too long: {excerpt["content"]}')
     #         return
 
     #     # Escape single quotes
-    #     excerpt['excerpt'] = excerpt['excerpt'].replace("'", "''")
+    #     excerpt['content'] = excerpt['content'].replace("'", "''")
 
     #     # Add excerpt to insert statement
-    #     insert_statement += f"\n('{excerpt['excerpt']}', " \
+    #     insert_statement += f"\n('{excerpt['content']}', " \
     #             f"'{json.dumps(excerpt['tags'])}', " \
     #             f"'{json.dumps(excerpt['metadata'])}'),"
 

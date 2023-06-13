@@ -1,6 +1,6 @@
 {% extends "excerpts/base.html" %}
 
-{% block title %}{{ excerpt.excerpt }}{% endblock %}
+{% block title %}{{ excerpt.content }}{% endblock %}
 
 {% block content_class %}excerpt_page{% endblock %}
 
@@ -8,7 +8,12 @@
 
 <a class="back" href="/excerpts/">Back to all excerpts</a>
 
-<div class="excerpt">{{ excerpt.excerpt|linebreaks }}</div>
+{% include "excerpts/excerpt.html" %}
+
+{% if excerpt.versions.all.count > 1 %}
+	<h3>Versions</h3>
+	{% include "excerpts/excerpt_versions.html" %}
+{% endif %}
 
 <h3>Tags</h3>
 {% include "excerpts/excerpt_tags.html" %}
@@ -34,12 +39,12 @@
 
 <h3>Controls</h3>
 <div class="controls">
-	<a class="edit" href="/excerpts/excerpt/{{ excerpt.id }}/edit/">Edit</a>
+	<a class="edit" href="/excerpts/excerpt/{{ excerpt.id }}/edit">Edit</a>
 	<a
 		class="delete"
 		{% comment %}hx-delete="/excerpts/excerpt/{{ excerpt.id }}"            {% endcomment %}
 		{% comment %}hx-confirm="Are you sure you want to delete this excerpt?"{% endcomment %}
-		href="/excerpts/excerpt/{{ excerpt.id }}/delete/"
+		href="/excerpts/excerpt/{{ excerpt.id }}/delete"
 	>
 	Delete</a>
 </div>
