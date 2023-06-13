@@ -1,7 +1,8 @@
 <div class="blocks tags" hx-target="this" hx-swap="outerHTML">
 	<div class="excerpt-tags">
-		{% for tag in excerpt.tags.all %}
-		<div class="block tag{% if tag.is_autotag %} autotag{% endif %}">
+		{% for excerpttag in excerpt.excerpttag_set.all %}
+		{% with tag=excerpttag.tag %}
+		<div class="block tag{% if excerpttag.is_autotag %} autotag{% endif %}">
 			<div class="block-controls">
 				<a
 					hx-post="/excerpts/excerpt/{{ excerpt.id }}/remove_tag/{{ tag.id }}"
@@ -21,9 +22,11 @@
 
 			{{ tag.name }}
 		</div>
+		{% endwith %}
 		{% endfor %}
 	</div>
 
+	{% if show_unused_tags != False %}
 	<div class="unused-tags">
 		{% for tag in excerpt.unused_tags %}
 		<div class="block tag inactive">
@@ -45,4 +48,5 @@
 		</div>
 		{% endfor %}
 	</div>
+	{% endif %}
 </div>

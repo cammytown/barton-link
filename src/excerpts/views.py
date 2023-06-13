@@ -110,7 +110,12 @@ def add_autotag(request, excerpt_id, tag_id):
     # Add tag to excerpt with is_autotag=True
     excerpt.tags.add(tag, through_defaults={ "is_autotag": True })
 
-    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
+    return render(request,
+                  "excerpts/excerpt_tags.html",
+                  {
+                      "excerpt": excerpt,
+                      "show_unused_tags": False
+                  })
 
 def remove_tag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -118,7 +123,9 @@ def remove_tag(request, excerpt_id, tag_id):
 
     excerpt.tags.remove(tag)
 
-    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
+    return render(request,
+                  "excerpts/excerpt_tags.html",
+                  { "excerpt": excerpt })
 
 def add_project(request, excerpt_id, project_id=None):
     """
@@ -199,7 +206,7 @@ def autotag_excerpts(request, excerpt_id=None):
             return HttpResponseNotFound()
     else:
         # Get all excerpts, order by ascending id
-        excerpts = Excerpt.objects.order_by("id")[:10]
+        excerpts = Excerpt.objects.order_by("id")[:100]
         # excerpts = Excerpt.objects.order_by("id")
 
     # Build list of excerpt texts
