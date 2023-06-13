@@ -2,6 +2,10 @@
 config/.gdocs/
 barton.db
 
+src/excerpts/static/excerpts/*.css
+*.css.map
+.sass-cache/
+
 __pycache__/
 *.egg-info/
 

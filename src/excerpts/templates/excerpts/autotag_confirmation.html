@@ -5,7 +5,32 @@
 {% block content %}
 	<h1>Confirm Auto-Tagging</h1>
 
-	{% for autotag in autotags %}
-	<p>{{ autotag.excerpt }} - {{ autotag.tag }} - {{ autotag.similarity }}</p>
+	{% for autotag_obj in autotag_objs %}
+	<div hx-target=".excerpt-tags" hx-swap="outerHTML">
+		<p>
+			{% include "excerpts/excerpt_list_single.html" with excerpt=autotag_obj.excerpt %}
+		</p>
+
+		<div class="blocks tags">
+			<strong>Autotags:</strong>
+
+			{% for tag_obj in autotag_obj.tag_scores %}
+				<a
+					hx-post="/excerpts/excerpt/{{ autotag_obj.excerpt.id }}/add_autotag/{{ tag_obj.tag.id }}"
+					hx-trigger="click"
+					class="block tag autotag"
+					{% comment %}href="/excerpts/tag/{{ tag_obj.tag.id }}/"{% endcomment %}
+				>
+					{{ tag_obj.tag.name }}
+					({{ tag_obj.score|floatformat:"2" }})
+				</a>
+			{% endfor %}
+		</div>
+	</div>
 	{% endfor %}
+
+	<p>
+		<a href="/excerpts/autotag/">Cancel</a>
+		<a href="/excerpts/autotag/confirm/">Confirm</a>
+	</p>
 {% endblock %}

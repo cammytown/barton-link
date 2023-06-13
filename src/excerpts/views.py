@@ -1,6 +1,6 @@
 # from django.shortcuts import render
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.urls import reverse
 from django.template import loader
 from django.shortcuts import render, redirect
@@ -10,6 +10,8 @@ from django.core.paginator import Paginator
 from barton_link.barton_link import BartonLink
 from barton_link.gdocs import GDocs
 from .models import Excerpt, Tag, Project, Character, ExcerptSimilarity
+
+barton_link = BartonLink()
 
 def index(request):
     return search(request)
@@ -33,13 +35,15 @@ def search(request):
     next_page_url = None
 
     if page_obj.has_previous():
-        prev_page_url = reverse("search") + f"?page={page_obj.previous_page_number()}"
+        prev_page_url = reverse("search") + \
+                f"?page={page_obj.previous_page_number()}"
 
         if search:
             prev_page_url += f"&search={search}"
 
     if page_obj.has_next():
-        next_page_url = reverse("search") + f"?page={page_obj.next_page_number()}"
+        next_page_url = reverse("search") + \
+                f"?page={page_obj.next_page_number()}"
 
         if search:
             next_page_url += f"&search={search}"
@@ -97,7 +101,16 @@ def add_tag(request, excerpt_id, tag_id):
 
     excerpt.tags.add(tag)
 
-    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt, })
+    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
+
+def add_autotag(request, excerpt_id, tag_id):
+    excerpt = Excerpt.objects.get(id=excerpt_id)
+    tag = Tag.objects.get(id=tag_id)
+
+    # Add tag to excerpt with is_autotag=True
+    excerpt.tags.add(tag, through_defaults={ "is_autotag": True })
+
+    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
 
 def remove_tag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -105,7 +118,7 @@ def remove_tag(request, excerpt_id, tag_id):
 
     excerpt.tags.remove(tag)
 
-    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt, })
+    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
 
 def add_project(request, excerpt_id, project_id=None):
     """
@@ -127,7 +140,9 @@ def add_project(request, excerpt_id, project_id=None):
         # Add project to excerpt
         excerpt.projects.add(project)
 
-        return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
+        return render(request,
+                      "excerpts/excerpt_projects.html",
+                      { "excerpt": excerpt })
 
     else:
         # If request is POST
@@ -142,12 +157,16 @@ def add_project(request, excerpt_id, project_id=None):
             # Add project to excerpt
             excerpt.projects.add(project)
 
-            return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
+            return render(request,
+                          "excerpts/excerpt_projects.html",
+                          { "excerpt": excerpt, })
 
         # If request is GET
         elif request.method == "GET":
             # Render add project form
-            return render(request, "excerpts/add_project.html", { "excerpt": excerpt, })
+            return render(request,
+                          "excerpts/add_project.html",
+                          { "excerpt": excerpt, })
 
         else:
             #@REVISIT
@@ -159,72 +178,159 @@ def remove_project(request, excerpt_id, project_id):
 
     excerpt.projects.remove(project)
 
-    return render(request, "excerpts/excerpt_projects.html", { "excerpt": excerpt, })
+    return render(request,
+                  "excerpts/excerpt_projects.html",
+                  { "excerpt": excerpt, })
 
 def tag(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
     context = { "tag": tag, }
     return render(request, "excerpts/tag_page.html", context)
 
-def autotag_excerpts(request):
-    """
-    Autotag excerpts.
+def autotag_excerpts(request, excerpt_id=None):
+    # Get excerpts
+    if excerpt_id:
+        # Get excerpt with id
+        excerpts = Excerpt.objects.filter(id=excerpt_id)
 
-    Present user with confirmation page before proceeding.
-    """
+        # If no excerpt with id
+        if len(excerpts) == 0:
+            # Return 404
+            return HttpResponseNotFound()
+    else:
+        # Get all excerpts, order by ascending id
+        excerpts = Excerpt.objects.order_by("id")[:10]
+        # excerpts = Excerpt.objects.order_by("id")
 
-    barton_link = BartonLink()
+    # Build list of excerpt texts
+    excerpt_texts = [excerpt.excerpt for excerpt in excerpts]
 
-    # Get all excerpts, order by ascending id
-    excerpts = Excerpt.objects.order_by("id")
-
-    # Get all tags
+    # Get tags
     tags = Tag.objects.all()
 
-    autotags = []
+    # Build list of tag names
+    tag_names = [tag.name for tag in tags]
 
-    # For each excerpt
-    for excerpt in excerpts:
-        # Get excerpt text
-        excerpt_text = excerpt.excerpt
+    # Compare excerpts to tags
+    print(f"Comparing {len(excerpts)} excerpts to {len(tags)} tags...")
+    scores = barton_link.compare_lists_sbert(excerpt_texts, tag_names)
 
-        # For each tag
-        for tag in tags:
-            # Check if tag is already in excerpt
+
+    autotag_objs = []
+    for i, excerpt in enumerate(excerpts):
+        autotag_obj = {
+            "excerpt": excerpt,
+            "tag_scores": [],
+        }
+
+        for j, tag in enumerate(tags):
+            # If tag is already on excerpt
             if tag in excerpt.tags.all():
                 continue
 
-            # Get tag name
-            tag_name = tag.name
+            # If score is greater than threshold
+            if scores[i][j] >= 0.5:
+                autotag_obj["tag_scores"].append({
+                    "tag": tag,
+                    "score": scores[i][j],
+                })
 
-            # If tag name is in excerpt text
-            if tag_name in excerpt_text:
-                # Measure semantic similarity between tag name and excerpt text
-                similarity = barton_link.measure_similarity_sbert(tag_name, excerpt_text)
+        if len(autotag_obj["tag_scores"]) > 0:
+            autotag_objs.append(autotag_obj)
 
-                # If similarity is above threshold
-                if similarity > 0.7:
-                    # Add tag to excerpt
-                    # excerpt.tags.add(tag)
-                    autotags.append({
-                        "excerpt": excerpt,
-                        "tag": tag,
-                        "similarity": similarity,
-                        })
-
-        if len(autotags) > 0:
-            break
-
-    context = { "autotags": autotags, }
+    print(f"Found {len(autotag_objs)} excerpts to autotag.")
+    print(autotag_objs)
+    context = {
+        "autotag_objs": autotag_objs,
+    }
 
     return render(request, "excerpts/autotag_confirmation.html", context)
+
+# def autotag_excerpts(request, excerpt_id=None):
+#     """
+#     Autotag excerpts.
+
+#     Present user with confirmation page before proceeding.
+#     """
+
+#     if excerpt_id:
+#         # Get excerpt with id
+#         excerpts = Excerpt.objects.filter(id=excerpt_id)
+
+#         # If no excerpt with id
+#         if len(excerpts) == 0:
+#             # Return 404
+#             return HttpResponseNotFound()
+#     else:
+#         # Get all excerpts, order by ascending id
+#         excerpts = Excerpt.objects.order_by("id")
+
+#     autotag_objs = []
+#     # warnings = []
+
+#     # For each excerpt
+#     for excerpt in excerpts:
+#         excerpt_autotag_objs = autotag_excerpt(excerpt)
+
+#         # If excerpt has autotags
+#         if len(excerpt_autotag_objs) > 0:
+#             autotag_objs.append({ "excerpt": excerpt, "tag_objs": excerpt_autotag_objs, })
+#             break
+
+#     context = { "autotags": autotag_objs, }
+
+#     return render(request, "excerpts/autotag_confirmation.html", context)
+
+# #@TODO probably move into a class
+# def autotag_excerpt(excerpt):
+#     """
+#     Autotag an excerpt.
+#     """
+
+#     # Get all tags
+#     #@TODO-4 optimization? does Django cache this?
+#     tags = Tag.objects.all()
+
+#     # Get excerpt text
+#     excerpt_text = excerpt.excerpt
+#     excerpt_autotag_objs = []
+
+#     print(f"Autotagging excerpt {excerpt.id}...", end="\r")
+
+#     # For each tag
+#     # inactive_tag_names = []
+#     for tag in tags:
+#         # Check if tag is already in excerpt
+#         if tag in excerpt.tags.all():
+#             continue
+
+#         # Get tag name
+#         tag_name = tag.name
+#         # inactive_tag_names.append(tag_name)
+
+#         # # If tag name is in excerpt text
+#         # if tag_name in excerpt_text:
+
+#         # Measure semantic similarity between tag name and excerpt text
+#         similarity = barton_link.measure_similarity_sbert(tag_name, excerpt_text)
+
+#         # If similarity is above threshold
+#         if similarity > 0.5:
+#             # If similarity is 1.0
+#             if similarity == 1.0:
+#                 print("Warning: Tag name is identical to excerpt text.")
+
+#             excerpt_autotag_objs.append({
+#                 "tag": tag,
+#                 "similarity": similarity,
+#             })
+
+#     return excerpt_autotag_objs
 
 def analyze_similarities(request):
     """
     Analyze similarities between excerpts using NLP.
     """
-
-    barton_link = BartonLink()
 
     created_count = 0
 
@@ -315,11 +421,7 @@ def analyze_similarities(request):
 
     return HttpResponse(f"Created {created_count} new ExcerptSimilarity entries.")
 
-def test(request):
-    #@TEMPORARY
-    # barton_link = BartonLink()
-    # barton_link.load_google_doc("1_naaQhlNJMOLVbsgnlyp7ejEZbP_vS-llK-ZGAIO3DI")
-
+def gdocs_test(request):
     # Initialize Google Docs API
     gdocs = GDocs()
 
@@ -328,11 +430,12 @@ def test(request):
 
     # Load doc-ids.txt
     #@TODO-4 temporary
-    with open("../../../data/debug/gdoc_ids.txt", "r") as f:
+    with open("../data/debug/gdoc_ids.txt", "r") as f:
         document_ids = f.readlines()
 
     # Split document_ids on == (format is document_name == document_id)
-    document_ids = [document_id.split(" == ")[1].strip() for document_id in document_ids]
+    document_ids = [document_id.split(" == ")[1].strip() \
+            for document_id in document_ids]
 
     response = f"Loaded {len(document_ids)} document ids."
 
@@ -358,7 +461,8 @@ def test(request):
                     metadata=excerpt_dict["metadata"],
                     ).exists():
 
-                print(f"Excerpt already exists in database: {excerpt_dict['excerpt']}")
+                print("Excerpt already exists in database: " \
+                        + f"{excerpt_dict['excerpt']}")
 
                 excerpt_dict["excerpt_instance"] = None
 

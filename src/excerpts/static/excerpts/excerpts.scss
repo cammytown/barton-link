@@ -117,6 +117,16 @@ div.excerpt {
 			@extend .disabled;
 		}
 	}
+
+	.autotag {
+		color: rgb(155, 205, 205);
+		background: rgba(105, 205, 205, 0.1);
+
+		&:hover {
+			color: rgb(105, 255, 255);
+			background: rgba(105, 205, 205, 0.2);
+		}
+	}
 }
 
 .metadata {

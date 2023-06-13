@@ -40,10 +40,18 @@ class Character(SoftDeleteModel):
     def __str__(self):
         return self.name
 
+class ExcerptTag(models.Model):
+    excerpt = models.ForeignKey('Excerpt', on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    is_autotag = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.excerpt} - {self.tag}"
+
 class Excerpt(SoftDeleteModel):
     excerpt = models.TextField()
 
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, through='ExcerptTag')
     characters = models.ManyToManyField(Character)
     projects = models.ManyToManyField(Project)
 

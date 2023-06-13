@@ -61,7 +61,7 @@ class BartonLink:
         # Return the similarity
         return similarity
 
-    def measure_similarity_sbert(self, excerpt1, excerpt2):
+    def measure_excerpt_similarity_sbert(self, excerpt1, excerpt2):
         # Use SentenceTransformer to measure similarity
         assert self.sbert is not None
 
@@ -74,6 +74,20 @@ class BartonLink:
         cosine_scores = util.cos_sim(embeddings1, embeddings2)
         
         return cosine_scores[0][0]
+
+    def compare_lists_sbert(self, a, b): #@REVISIT naming
+        # Use SentenceTransformer to measure similarity
+        assert self.sbert is not None
+
+        # Compute embeddings
+        embeddings1 = self.sbert.encode(a, convert_to_tensor=True)
+        embeddings2 = self.sbert.encode(b, convert_to_tensor=True)
+
+        # Compute cosine-similarities
+        #@TODO move to GPU when possible and desired
+        cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
+
+        return cosine_scores
 
     def load_google_doc(self, document_id):
         if not self.gdocs:

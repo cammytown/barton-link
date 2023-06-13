@@ -3,7 +3,7 @@
 		{{ excerpt.excerpt|linebreaksbr }}
 	</a>
 
-	<span class="blocks tags">
+	<span class="blocks tags excerpt-tags">
 	{% for tag in excerpt.tags.all %}
 		<a class="block tag" href="/excerpts/tag/{{ tag.id }}/">{{ tag.name }}</a>
 	{% endfor %}
