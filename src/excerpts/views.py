@@ -57,7 +57,7 @@ def search(request):
 
     # Render list
     context = {
-        "excerpts": excerpts,
+        # "excerpts": excerpts,
         "page_obj": page_obj,
         "prev_page_url": prev_page_url,
         "next_page_url": next_page_url,
@@ -239,7 +239,19 @@ def remove_project(request, excerpt_id, project_id):
 
 def tag(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
-    context = { "tag": tag, }
+
+    page_num = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 50)
+
+    # Get excerpts with tag
+    excerpts = tag.excerpts.all()
+
+    # Paginate excerpts
+    paginator = Paginator(excerpts, page_size)
+    page_obj = paginator.get_page(page_num)
+
+    context = { "tag": tag, "page_obj": page_obj }
+
     return render(request, "excerpts/tag_page.html", context)
 
 def autotag_excerpts(request, excerpt_id=None):

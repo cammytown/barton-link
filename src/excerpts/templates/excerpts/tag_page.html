@@ -7,12 +7,8 @@
 <h2>{{ tag.name }}</h2>
 <p><a href="/excerpts/">Back to all excerpts</a></p>
 
-{% for excerpt in tag.excerpt_set.all %}
-<div>
-	{% include "excerpts/excerpt_list_single.html" with excerpt=excerpt %}
-</div>
-{% endfor %}
+{% include "excerpts/excerpt_list.html" %}
 
-<p><a href="/excerpts/">Back to all excerpts</a></p>
+<a href="/excerpts/">Back to all excerpts</a>
 
 {% endblock %}

@@ -50,7 +50,7 @@ class ExcerptTag(models.Model):
 
 class Excerpt(SoftDeleteModel):
     content = models.TextField()
-    tags = models.ManyToManyField(Tag, through='ExcerptTag')
+    tags = models.ManyToManyField(Tag, through='ExcerptTag', related_name='excerpts')
     characters = models.ManyToManyField(Character)
     projects = models.ManyToManyField(Project)
 

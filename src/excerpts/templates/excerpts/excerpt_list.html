@@ -19,7 +19,7 @@
 
 <!--<p><a href="/excerpts/excerpt/new/">New Excerpt</a></p>-->
 
-{% if page_obj.has_next %}
+{% if page_obj %}
 <ul>
 {% for excerpt in page_obj %}
 	<li>
