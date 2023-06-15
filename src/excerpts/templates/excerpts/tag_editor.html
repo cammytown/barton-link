@@ -1,0 +1,14 @@
+<form
+	class="tag editor"
+	hx-put="/excerpts/tag/{{ tag.id }}"
+	hx-target="this"
+	hx-swap="outerHTML"
+>
+	<input name="name" value="{{ tag.name }}" />
+
+	{% comment %}<input name="description" value="{{ tag.description }}" />{% endcomment %}
+
+	{% comment %}<input name="is_autotag" type="checkbox" {% if tag.is_autotag %}checked{% endif %} />{% endcomment %}
+	{% comment %}<input name="is_hidden" type="checkbox" {% if tag.is_hidden %}checked{% endif %} />  {% endcomment %}
+	{% comment %}<input name="is_deleted" type="checkbox" {% if tag.is_deleted %}checked{% endif %} />{% endcomment %}
+</form>

@@ -4,10 +4,6 @@ from django.urls.conf import include
 from . import views
 
 excerpt_patterns = [
-    # path("", views.excerpt, name="excerpt"),
-    path("edit", views.edit, name="edit"),
-    path("delete", views.delete, name="delete"),
-
     path("add_tag/<int:tag_id>", views.add_tag, name="add_tag"),
     path("add_autotag/<int:tag_id>", views.add_autotag, name="add_autotag"),
     path("remove_tag/<int:tag_id>", views.remove_tag, name="remove_tag"),

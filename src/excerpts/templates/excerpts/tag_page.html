@@ -4,7 +4,8 @@
 
 {% block content %}
 
-<h2>{{ tag.name }}</h2>
+{% include "excerpts/tag_header.html" %}
+
 <p><a href="/excerpts/">Back to all excerpts</a></p>
 
 {% include "excerpts/excerpt_list.html" %}
