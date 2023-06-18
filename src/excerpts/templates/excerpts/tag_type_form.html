@@ -1,0 +1,23 @@
+<form
+	{% if tag_type.id %}
+	hx-put="/excerpts/tag-types/{{ tag_type.id }}"
+	{% else %}
+	hx-post="/excerpts/tag-types"
+	{% endif %}
+
+	hx-swap="outerHTML"
+>
+	<input
+		name="tag_type_name"
+		value="{{ tag_type.name }}"
+		placeholder="Tag type name" />
+
+	<input
+		name="tag_type_description"
+		value="{{ tag_type.description }}"
+		placeholder="Tag type description" />
+
+	<button type="submit">
+		{% if tag_type.id %}Update{% else %}Create{% endif %}
+	</button>
+</form>

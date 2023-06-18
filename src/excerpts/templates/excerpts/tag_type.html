@@ -1,8 +1,6 @@
-<div class="blocks tags">
-	<h2>
-		{{ tag_type.name }}
-	</h2>
+{% include "excerpts/tag_type_header.html" %}
 
+<div class="blocks tags">
 	{% for tag in tag_type.tags.all %}
 	{% comment %}
 	<div class="block tag">

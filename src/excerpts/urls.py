@@ -22,8 +22,11 @@ urlpatterns = [
 
     path("tags", views.tags, name="tags"),
     path("tag/<int:tag_id>", views.tag, name="tag"),
-    path("tag_types", views.tag_types, name="tag_types"),
-    path("tag_types/create", views.create_tag_type, name="create_tag_type"),
+
+    path("tag-types", views.tag_types, name="tag_types"),
+    path("tag-types/create", views.create_tag_type, name="create_tag_type"),
+    path("tag-types/<int:tag_type_id>", views.tag_type, name="tag_type"),
+    path("tag-types/<int:tag_type_id>/edit", views.edit_tag_type, name="edit_tag_type"),
 
     path("projects", views.projects, name="projects"),
     path("project/<int:project_id>", views.project, name="project"),
