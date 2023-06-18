@@ -2,7 +2,24 @@ from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 from django.core.paginator import Paginator
 
-from ..models import Excerpt, Tag
+from ..models import Excerpt, Tag, TagType
+
+def tags(request):
+    # Get tag types
+    tag_types = TagType.objects.order_by("name")
+
+    # Get tags with NULL tag type
+    null_type_tags = Tag.objects.filter(type__isnull=True)
+
+    # Paginate
+    #@TODO
+
+    context = {
+        "null_type_tags": null_type_tags,
+        "tag_types": tag_types
+    }
+
+    return render(request, "excerpts/tags_index.html", context)
 
 def tag(request, tag_id):
     # If HTMX request
@@ -33,14 +50,55 @@ def tag_htmx(request, tag_id):
 
     match request.method:
         case "GET":
-            return render(request, "excerpts/tag_editor.html", { "tag": tag })
+            context = {
+                "tag": tag,
+                "tag_types": TagType.objects.order_by("name"),
+            }
+
+            return render(request, "excerpts/tag_editor.html", context)
 
         case "PUT":
             # Get tag name from request body
-            tag_name = QueryDict(request.body)["name"]
+            tag_name = QueryDict(request.body)["tag_name"]
+            tag_type_id = QueryDict(request.body)["tag_type_id"]
+
+            # If tag name is empty
+            if not tag_name:
+                # Return 400; bad request
+                return HttpResponse(status=400)
+
+            # If tag name is already taken by another tag
+            conflict_tag = Tag.objects.filter(name=tag_name).exclude(id=tag_id)
+            if conflict_tag:
+                # Ask to merge tags
+                return render(request, "excerpts/tag_conflict.html", {
+                    "tag": tag,
+                    "conflict_tag": conflict_tag,
+                })
+
+            # # If tag type is not empty
+            # if tag_type_id:
+            # Get tag type
+            tag_type = TagType.objects.get(id=tag_type_id)
+
+            # If tag type does not exist
+            if not tag_type:
+                # If id is 1
+                if tag_type_id == 1:
+                    # Create default tag type
+                    #@REVISIT implementation
+                    tag_type = TagType.objects.create(name="default")
+                else:
+                    #@TODO allow user to create tag type
+
+                    # Return 400; bad request
+                    return HttpResponse(status=400)
+
+            tag.type = tag_type
 
             # Update tag name
             tag.name = tag_name
+
             tag.save()
 
             return render(request, "excerpts/tag_header.html", { "tag": tag })
@@ -57,6 +115,60 @@ def tag_htmx(request, tag_id):
         case _:
             # Return 405; method not allowed
             return HttpResponse(status=405)
+
+def create_tag_type(request):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "excerpts/tag_type_create.html")
+    else:
+        return HttpResponse(status=405)
+
+def tag_types(request):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        return tag_types_htmx(request)
+    else:
+        return tag_types_html(request)
+
+def tag_types_html(request):
+    return HttpResponse(status=405)
+    #@TODO
+    # # Get all tag types
+    # tag_types = TagType.objects.order_by("name")
+
+    # context = { "tag_types": tag_types }
+
+    # return render(request, "excerpts/tag_types_index.html", context)
+
+def tag_types_htmx(request):
+    match request.method:
+        case "POST":
+            # Parse request body
+            data = QueryDict(request.body)
+
+            # Get tag type name
+            tag_type_name = data["tag_type_name"]
+
+            # Get tag type description
+            tag_type_description = data["tag_type_description"]
+
+            # If tag type name is empty
+            if not tag_type_name:
+                # Return 400; bad request
+                return HttpResponse(status=400)
+
+            # If tag type name is already taken
+            if TagType.objects.filter(name=tag_type_name).exists():
+                # Return 409; conflict
+                return HttpResponse(status=409)
+
+            # Create tag type
+            print(f"Creating tag type: {tag_type_name} ({tag_type_description})")
+            tag_type = TagType(name=tag_type_name,
+                               description=tag_type_description)
+            tag_type.save()
+
+            return render(request, "excerpts/tag_type.html", { "tag_type": tag_type })
 
 def autotag_excerpts(request, excerpt_id=None):
     barton_link.load_nlp_models() #@REVISIT architecture

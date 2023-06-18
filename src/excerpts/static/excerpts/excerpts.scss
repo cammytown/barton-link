@@ -3,6 +3,36 @@ body {
 	color: rgb(205, 205, 205);
 }
 
+nav#main-menu {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 900px;
+	margin: 0 auto;
+	background: rgb(10, 10, 10);
+	padding: 10px 30px;
+
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: inline-block;
+			margin: 0 10px;
+
+			a {
+				text-decoration: none;
+				color: rgb(205, 205, 205);
+
+				&:hover {
+					color: rgb(255, 255, 255);
+				}
+			}
+		}
+	}
+}
+
 #content {
 	width: 900px;
 	margin: 0 auto;
@@ -87,6 +117,7 @@ div.excerpt, form.excerpt {
 		padding: 2px 5px;
 		margin: 2px;
 
+		text-decoration: none;
 		color: rgb(235, 155, 105);
 		background: rgba(155, 105, 105, 0.1);
 

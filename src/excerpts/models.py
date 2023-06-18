@@ -14,9 +14,21 @@ class SoftDeleteModel(models.Model):
     class Meta:
         abstract = True
 
+class TagType(models.Model):
+    name = models.TextField()
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
 class Tag(SoftDeleteModel):
     name = models.TextField()
     description = models.TextField()
+    #@REVISIT on_delete i think is wrong:
+    type = models.ForeignKey(TagType,
+                                 on_delete=models.CASCADE,
+                                 default=1,
+                                 related_name="tags")
 
     def __str__(self):
         return self.name
@@ -60,7 +72,12 @@ class Excerpt(SoftDeleteModel):
     updated = models.DateTimeField(auto_now=True)
 
     def unused_tags(self):
-        return Tag.objects.exclude(excerpt__id=self.id)
+        """
+        Return all tags that are not associated with this excerpt.
+        """
+
+        return Tag.objects.exclude(excerpttag__excerpt=self)
+
 
     def unused_projects(self):
         return Project.objects.exclude(excerpt__id=self.id)

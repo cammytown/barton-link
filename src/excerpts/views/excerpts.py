@@ -11,6 +11,7 @@ from ..models import \
         ExcerptVersion,\
         ExcerptSimilarity,\
         Tag,\
+        TagType,\
         Project,\
         Character
 

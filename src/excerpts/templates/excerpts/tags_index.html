@@ -1,0 +1,19 @@
+{% extends 'excerpts/base.html' %}
+
+{% block title %}Tags{% endblock %}
+
+{% block content %}
+
+{% for tag_type in tag_types %}
+	{% include 'excerpts/tag_type.html' %}
+{% endfor %}
+
+<a
+	hx-get="/excerpts/tag_types/create"
+	hx-trigger="click"
+	hx-swap="outerHTML"
+>
+	Create tag type
+</a>
+
+{% endblock %}

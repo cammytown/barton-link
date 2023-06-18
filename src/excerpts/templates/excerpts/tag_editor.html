@@ -4,7 +4,21 @@
 	hx-target="this"
 	hx-swap="outerHTML"
 >
-	<input name="name" value="{{ tag.name }}" />
+	<input name="tag_name" value="{{ tag.name }}" />
+
+	<select name="tag_type_id">
+		{% comment %}#@REVISIT:{% endcomment %}
+		<option value="">Select a tag type</option>
+
+		{% for tag_type in tag_types %}
+			<option
+				value="{{ tag_type.id }}"
+				{% if tag.type.id == tag_type.id %}selected{% endif %}
+			>
+				{{ tag_type.name }}
+			</option>
+		{% endfor %}
+	</select>
 
 	{% comment %}<input name="description" value="{{ tag.description }}" />{% endcomment %}
 

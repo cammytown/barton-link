@@ -13,6 +13,14 @@
 </head>
 
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+	<nav id="main-menu">
+		<ul>
+			<li><a href="{% url 'index' %}">Excerpts</a></li>
+			<li><a href="{% url 'tags' %}">Tags</a></li>
+			<li><a href="{% url 'projects' %}">Projects</a></li>
+		</ul>
+	</nav>
+
 	<div id="content" class="{% block content_class %}{% endblock %}">
 		{% block content %}{% endblock %}
 	</div>

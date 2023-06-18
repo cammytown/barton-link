@@ -1,0 +1,34 @@
+<div class="blocks tags">
+	<h2>
+		{{ tag_type.name }}
+	</h2>
+
+	{% for tag in tag_type.tags.all %}
+	{% comment %}
+	<div class="block tag">
+		<div class="block-controls">
+			<a
+				hx-post="/excerpts/tag/{{ tag.id }}/delete"
+				hx-trigger="click"
+				class="block-control red"
+			>
+				x
+			</a>
+
+			<a
+				href="/excerpts/tag/{{ tag.id }}"
+				class="block-control tag-link blue"
+			>
+				i
+			</a>
+		</div>
+
+		{{ tag.name }}
+	</div>
+	{% endcomment %}
+
+	<a href="/excerpts/tag/{{ tag.id }}" class="block tag">
+		{{ tag.name }}
+	</a>
+	{% endfor %}
+</div>
