@@ -1,8 +1,27 @@
-<header
-	hx-get="/excerpts/tag/{{ tag.id }}/edit"
-	hx-swap="outerHTML"
->
+{% if tag.is_deleted %}
+<div class="deleted">
+	This tag has been deleted.
+</div>
+{% endif %}
+
+<header>
 	<h2>{{ tag.name }}</h2>
 
-	<a class="edit-link">edit</a>
+	<a
+		class="control"
+		hx-get="/excerpts/tags/{{ tag.id }}/edit"
+		hx-swap="outerHTML"
+		hx-target="closest header"
+	>
+		edit
+	</a>
+
+	<a
+		class="control"
+		hx-get="/excerpts/tags/{{ tag.id }}/split"
+		hx-swap="outerHTML"
+		hx-target="closest header"
+	>
+		split
+	</a>
 </header>

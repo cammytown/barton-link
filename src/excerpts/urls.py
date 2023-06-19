@@ -21,7 +21,11 @@ urlpatterns = [
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
 
     path("tags", views.tags, name="tags"),
-    path("tag/<int:tag_id>", views.tag, name="tag"),
+    path("tags/<int:tag_id>", views.tag, name="tag"),
+    path("tags/<int:tag_id>/edit", views.edit_tag, name="tag"),
+    path("tags/<int:tag_id>/split", views.split_tag, name="split_tag"),
+    path("tags/<int:tag_id>/split/add-split-field", views.add_split_field, name="add_split_field"),
+    # path("tag/<int:tag_id>/merge", views.merge_tag, name="merge_tag"),
 
     path("tag-types", views.tag_types, name="tag_types"),
     path("tag-types/create", views.create_tag_type, name="create_tag_type"),

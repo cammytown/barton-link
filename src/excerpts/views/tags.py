@@ -29,7 +29,7 @@ def tag(request, tag_id):
         return tag_html(request, tag_id)
 
 def tag_html(request, tag_id):
-    tag = Tag.objects.get(id=tag_id)
+    tag = Tag.all_objects.get(id=tag_id)
 
     page_num = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 50)
@@ -49,13 +49,6 @@ def tag_htmx(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
 
     match request.method:
-        case "GET":
-            context = {
-                "tag": tag,
-                "tag_types": TagType.objects.order_by("name"),
-            }
-
-            return render(request, "excerpts/tag_editor.html", context)
 
         case "PUT":
             # Get tag name from request body
@@ -116,10 +109,107 @@ def tag_htmx(request, tag_id):
             # Return 405; method not allowed
             return HttpResponse(status=405)
 
+def edit_tag(request, tag_id):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        # Get tag
+        tag = Tag.objects.get(id=tag_id)
+
+        context = {
+            "tag": tag,
+            "tag_types": TagType.objects.order_by("name"),
+        }
+
+        return render(request, "excerpts/tag_editor.html", context)
+    else:
+        return HttpResponse(status=405)
+
+def split_tag(request, tag_id):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        match request.method:
+            case "GET":
+                # Get tag
+                tag = Tag.objects.get(id=tag_id)
+
+                context = {
+                    "tag": tag,
+                    "tag_types": TagType.objects.order_by("name"),
+                }
+
+                return render(request, "excerpts/tag_splitter.html", context)
+
+            case "POST":
+                # Get original tag
+                original_tag = Tag.objects.get(id=tag_id)
+
+                # Get tag names from tag_names[] in request
+                tag_names = request.POST.getlist("tag_names[]")
+
+                # Remove empty strings
+                tag_names = list(filter(None, tag_names))
+
+                # If tag names is empty
+                if not tag_names:
+                    # Return 400; bad request
+                    return HttpResponse(status=400)
+
+                # If tag names contains original tag name
+                if original_tag.name in tag_names:
+                    # Return 400; bad request
+                    return HttpResponse(status=400)
+
+                new_tags = []
+
+                # For each tag name
+                for tag_name in tag_names:
+                    # Get tag if it exists
+                    tag = Tag.objects.filter(name=tag_name).first()
+
+                    # If tag doesn't exist
+                    if not tag:
+                        # Create tag
+                        tag = Tag.objects.create(name=tag_name)
+
+                    # Add tag to new tags
+                    new_tags.append(tag)
+
+                # Get excerpts with original tag
+                excerpts = original_tag.excerpts.all()
+
+                # For each excerpt
+                for excerpt in excerpts:
+                    # For each new tag
+                    for new_tag in new_tags:
+                        # Add new tag to excerpt
+                        excerpt.tags.add(new_tag)
+
+                    # Remove original tag from excerpt
+                    excerpt.tags.remove(original_tag)
+
+                # Delete original tag
+                original_tag.soft_delete()
+
+                return render(request,
+                              "excerpts/tag_header.html",
+                              { "tag": original_tag })
+
+    else:
+        return HttpResponse(status=405)
+
+#@REVISIT naming
+def add_split_field(request, tag_id):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "excerpts/tag_split_field.html")
+    else:
+        return HttpResponse(status=405)
+
 def tag_type(request, tag_type_id):
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
         return tag_type_htmx(request, tag_type_id)
+
     else:
         #@TODO
         return HttpResponse(status=405)

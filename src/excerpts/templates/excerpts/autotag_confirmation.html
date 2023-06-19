@@ -19,7 +19,7 @@
 					hx-post="/excerpts/excerpt/{{ autotag_obj.excerpt.id }}/add_autotag/{{ tag_obj.tag.id }}"
 					hx-trigger="click"
 					class="block tag autotag"
-					{% comment %}href="/excerpts/tag/{{ tag_obj.tag.id }}/"{% endcomment %}
+					{% comment %}href="/excerpts/tags/{{ tag_obj.tag.id }}/"{% endcomment %}
 				>
 					{{ tag_obj.tag.name }}
 					({{ tag_obj.score|floatformat:"2" }})

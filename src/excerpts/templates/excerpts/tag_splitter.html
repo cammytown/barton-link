@@ -1,0 +1,27 @@
+<form
+	hx-post="/excerpts/tags/{{ tag.id }}/split"
+	hx-swap="outerHTML"
+>
+	{% comment %}<input                         {% endcomment %}
+	{% comment %}    name="tag_name_1"          {% endcomment %}
+	{% comment %}    value=""                   {% endcomment %}
+	{% comment %}    placeholder="Tag name 1" />{% endcomment %}
+
+	{% comment %}<input                         {% endcomment %}
+	{% comment %}    name="tag_name_2"          {% endcomment %}
+	{% comment %}    value=""                   {% endcomment %}
+	{% comment %}    placeholder="Tag name 2" />{% endcomment %}
+
+	{% include "excerpts/tag_split_field.html" %}
+	{% include "excerpts/tag_split_field.html" %}
+
+	<a
+		hx-get="/excerpts/tags/{{ tag.id }}/split/add-split-field"
+		hx-swap="beforebegin"
+		hx-target="this"
+	>
+		+
+	</a>
+
+	<button type="submit">Split</button>
+</form>

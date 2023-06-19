@@ -46,14 +46,22 @@ nav#main-menu {
 			margin: 0;
 		}
 
-		.edit-link {
+		.control {
 			display: none;
+			margin-left: 10px;
 		}
 
-		&:hover .edit-link {
+		&:hover .control {
 			display: block;
 		}
 	}
+}
+
+div.deleted {
+	background: rgb(50, 10, 10);
+	color: rgb(220, 120, 120);
+	padding: 10px;
+	margin-bottom: 10px;
 }
 
 a {

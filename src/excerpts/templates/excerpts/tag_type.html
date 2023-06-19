@@ -6,7 +6,7 @@
 	<div class="block tag">
 		<div class="block-controls">
 			<a
-				hx-post="/excerpts/tag/{{ tag.id }}/delete"
+				hx-post="/excerpts/tags/{{ tag.id }}/delete"
 				hx-trigger="click"
 				class="block-control red"
 			>
@@ -14,7 +14,7 @@
 			</a>
 
 			<a
-				href="/excerpts/tag/{{ tag.id }}"
+				href="/excerpts/tags/{{ tag.id }}"
 				class="block-control tag-link blue"
 			>
 				i
@@ -25,7 +25,7 @@
 	</div>
 	{% endcomment %}
 
-	<a href="/excerpts/tag/{{ tag.id }}" class="block tag">
+	<a href="/excerpts/tags/{{ tag.id }}" class="block tag">
 		{{ tag.name }}
 	</a>
 	{% endfor %}

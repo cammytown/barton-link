@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 
 class SoftDeleteManager(models.Manager):
@@ -10,6 +11,11 @@ class SoftDeleteModel(models.Model):
 
     objects = SoftDeleteManager()
     all_objects = models.Manager()
+
+    def soft_delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.deleted_at = datetime.now()
+        self.save()
 
     class Meta:
         abstract = True
@@ -24,6 +30,7 @@ class TagType(models.Model):
 class Tag(SoftDeleteModel):
     name = models.TextField()
     description = models.TextField()
+
     #@REVISIT on_delete i think is wrong:
     type = models.ForeignKey(TagType,
                                  on_delete=models.CASCADE,

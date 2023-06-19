@@ -122,8 +122,7 @@ def excerpt_htmx(request, excerpt_id):
 
             # Mark excerpt as deleted
             #@TODO-3: maintenance op to actually delete excerpts marked as deleted
-            excerpt.is_deleted = True
-            excerpt.save()
+            excerpt.soft_delete()
 
             # Return 204 success with no content
             return HttpResponse(status=204)
