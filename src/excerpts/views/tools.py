@@ -1,4 +1,8 @@
+from django.http import HttpResponse, HttpResponseNotFound, QueryDict
+from django.shortcuts import render
+
 from barton_link.barton_link import BartonLink
+from ..models import Excerpt, ExcerptSimilarity, Tag, TagType
 
 barton_link = BartonLink()
 from barton_link.gdocs import GDocs
@@ -99,6 +103,20 @@ def analyze_similarities(request):
                 created_count += 1
 
     return HttpResponse(f"Created {created_count} new ExcerptSimilarity entries.")
+
+def import_excerpts(request):
+    match request.method:
+        case "GET":
+            tags = Tag.objects.all()
+            tag_types = TagType.objects.all()
+
+            return render(request, "excerpts/import/import_page.html", {
+                "tags": tags,
+                "tag_types": tag_types,
+                })
+
+        case _:
+            return HttpResponseNotFound()
 
 def gdocs_test(request):
     # Initialize Google Docs API

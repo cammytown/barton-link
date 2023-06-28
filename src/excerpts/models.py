@@ -40,20 +40,10 @@ class Tag(SoftDeleteModel):
     def __str__(self):
         return self.name
 
-class Project(SoftDeleteModel):
-    name = models.TextField()
-    description = models.TextField()
-
-    tags = models.ManyToManyField(Tag)
-
-    def __str__(self):
-        return self.name
-
 class Character(SoftDeleteModel):
     name = models.TextField()
     description = models.TextField()
 
-    projects = models.ManyToManyField(Project)
     tags = models.ManyToManyField(Tag)
 
     def __str__(self):
@@ -71,7 +61,6 @@ class Excerpt(SoftDeleteModel):
     content = models.TextField()
     tags = models.ManyToManyField(Tag, through='ExcerptTag', related_name='excerpts')
     characters = models.ManyToManyField(Character)
-    projects = models.ManyToManyField(Project)
 
     metadata = models.TextField()
 
@@ -84,10 +73,6 @@ class Excerpt(SoftDeleteModel):
         """
 
         return Tag.objects.exclude(excerpttag__excerpt=self)
-
-
-    def unused_projects(self):
-        return Project.objects.exclude(excerpt__id=self.id)
 
     # def save(self, *args, **kwargs):
     #     super(Excerpt, self).save(*args, **kwargs)

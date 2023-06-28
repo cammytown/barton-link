@@ -26,7 +26,7 @@ def tag_type_html(request, tag_type_id):
 
     context = { "tag_type": tag_type, "tags": tags }
 
-    return render(request, "excerpts/tag_type_page.html", context)
+    return render(request, "excerpts/tags/tag_type_page.html", context)
 
 def tag_type_htmx(request, tag_type_id):
     match request.method:
@@ -73,7 +73,7 @@ def tag_type_htmx(request, tag_type_id):
             tag_type.save()
 
             return render(request,
-                          "excerpts/tag_type_header.html",
+                          "excerpts/tags/_tag_type_header.html",
                           { "tag_type": tag_type })
 
         case "DELETE":
@@ -92,14 +92,14 @@ def tag_type_htmx(request, tag_type_id):
 def create_tag_type(request):
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
-        return render(request, "excerpts/tag_type_form.html")
+        return render(request, "excerpts/tags/_tag_type_form.html")
     else:
         return HttpResponse(status=405)
 
 def edit_tag_type(request, tag_type_id):
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
-        return render(request, "excerpts/tag_type_form.html", {
+        return render(request, "excerpts/tags/_tag_type_form.html", {
             "tag_type": TagType.objects.get(id=tag_type_id)
         })
 
@@ -151,5 +151,5 @@ def tag_types_htmx(request):
                                description=tag_type_description)
             tag_type.save()
 
-            return render(request, "excerpts/tag_type.html", { "tag_type": tag_type })
+            return render(request, "excerpts/tags/_tag_type.html", { "tag_type": tag_type })
 

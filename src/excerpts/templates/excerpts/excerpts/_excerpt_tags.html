@@ -1,14 +1,10 @@
-<div class="blocks tags" hx-target="this" hx-swap="outerHTML">
-	<div class="excerpt-tags">
-		{% for excerpttag in excerpt.excerpttag_set.all %}
-		{% with tag=excerpttag.tag %}
-			{% include "excerpts/tag.html" %}
-		{% endwith %}
-		{% endfor %}
-	</div>
+<div class="excerpt-tags" hx-target="this" hx-swap="outerHTML">
+	{% with tags=excerpt.tags.all %}
+		{% include "excerpts/tags/_tag_list.html" with show_unused_tags=False %}
+	{% endwith %}
 
 	{% if show_unused_tags != False %}
-	<div class="unused-tags">
+	<div class="blocks tags unused-tags">
 		{% for tag in excerpt.unused_tags %}
 		<div class="block tag inactive">
 			<div class="block-controls">

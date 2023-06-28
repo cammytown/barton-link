@@ -8,7 +8,7 @@
 	{% for autotag_obj in autotag_objs %}
 	<div hx-target=".excerpt-tags" hx-swap="outerHTML">
 		<p>
-			{% include "excerpts/excerpt_list_single.html" with excerpt=autotag_obj.content %}
+			{% include "excerpts/excerpts/_excerpt_list_single.html" with excerpt=autotag_obj.content %}
 		</p>
 
 		<div class="blocks tags">

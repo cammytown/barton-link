@@ -1,0 +1,22 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Import Excerpts{% endblock %}
+
+{% block content %}
+	<form
+		hx-post="/excerpts/import"
+		hx-swap="outerHTML"
+		hx-target="closest form"
+	>
+		<h2>Default Tags</h2>
+		{% include "excerpts/import/_import_tags.html" %}
+
+		<textarea
+			name="excerpts"
+			placeholder="Paste excerpts here"
+		></textarea>
+
+		<button type="submit">Import</button>
+	</form>
+{% endblock %}
+```

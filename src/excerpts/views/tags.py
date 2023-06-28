@@ -55,7 +55,7 @@ def tags_htmx(request):
             # Create tag
             tag = Tag.objects.create(name=tag_name, type=tag_type)
 
-            return render(request, "excerpts/tag.html", { "tag": tag })
+            return render(request, "excerpts/tags/_tag.html", { "tag": tag })
 
         case _:
             return HttpResponse(status=405)
@@ -78,7 +78,7 @@ def tags_html(request):
                 "tag_types": tag_types
             }
 
-            return render(request, "excerpts/tags_index.html", context)
+            return render(request, "excerpts/tags/tags_index.html", context)
 
         case _:
             return HttpResponse(status=405)
@@ -105,7 +105,7 @@ def tag_html(request, tag_id):
 
     context = { "tag": tag, "page_obj": page_obj }
 
-    return render(request, "excerpts/tag_page.html", context)
+    return render(request, "excerpts/tags/tag_page.html", context)
 
 def tag_htmx(request, tag_id):
     tag = Tag.objects.get(id=tag_id)
@@ -125,7 +125,7 @@ def tag_htmx(request, tag_id):
             conflict_tag = Tag.objects.filter(name=tag_name).exclude(id=tag_id)
             if conflict_tag:
                 # Ask to merge tags
-                return render(request, "excerpts/tag_conflict.html", {
+                return render(request, "excerpts/tags/_tag_conflict.html", {
                     "tag": tag,
                     "conflict_tag": conflict_tag,
                 })
@@ -155,7 +155,7 @@ def tag_htmx(request, tag_id):
 
             tag.save()
 
-            return render(request, "excerpts/tag_header.html", { "tag": tag })
+            return render(request, "excerpts/tags/_tag_header.html", { "tag": tag })
 
         case "DELETE":
             # Delete tag
@@ -178,7 +178,7 @@ def create_tag(request):
                 "tag_types": TagType.objects.order_by("name"),
             }
 
-            return render(request, "excerpts/tag_form.html", context)
+            return render(request, "excerpts/tags/_tag_form.html", context)
         else:
             return HttpResponse(status=405)
     else:
@@ -195,7 +195,7 @@ def edit_tag(request, tag_id):
             "tag_types": TagType.objects.order_by("name"),
         }
 
-        return render(request, "excerpts/tag_form.html", context)
+        return render(request, "excerpts/tags/_tag_form.html", context)
     else:
         return HttpResponse(status=405)
 
@@ -212,7 +212,7 @@ def split_tag(request, tag_id):
                     "tag_types": TagType.objects.order_by("name"),
                 }
 
-                return render(request, "excerpts/tag_splitter.html", context)
+                return render(request, "excerpts/tags/_tag_splitter.html", context)
 
             case "POST":
                 # Get original tag
@@ -266,7 +266,7 @@ def split_tag(request, tag_id):
                 original_tag.soft_delete()
 
                 return render(request,
-                              "excerpts/tag_header.html",
+                              "excerpts/tags/_tag_header.html",
                               { "tag": original_tag })
 
     else:
@@ -276,7 +276,7 @@ def split_tag(request, tag_id):
 def add_split_field(request, tag_id):
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
-        return render(request, "excerpts/tag_split_field.html")
+        return render(request, "excerpts/tags/_tag_split_field.html")
     else:
         return HttpResponse(status=405)
 

@@ -12,8 +12,8 @@
 	{% comment %}    value=""                   {% endcomment %}
 	{% comment %}    placeholder="Tag name 2" />{% endcomment %}
 
-	{% include "excerpts/tag_split_field.html" %}
-	{% include "excerpts/tag_split_field.html" %}
+	{% include "excerpts/tags/_tag_split_field.html" %}
+	{% include "excerpts/tags/_tag_split_field.html" %}
 
 	<a
 		hx-get="/excerpts/tags/{{ tag.id }}/split/add-split-field"

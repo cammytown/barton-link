@@ -8,31 +8,17 @@
 
 <a class="back" href="/excerpts/">Back to all excerpts</a>
 
-{% include "excerpts/excerpt.html" %}
+{% include "excerpts/excerpts/_excerpt.html" %}
 
 {% if excerpt.versions.all.count > 1 %}
 	<h3>Versions</h3>
-	{% include "excerpts/excerpt_versions.html" %}
+	{% include "excerpts/excerpts/_excerpt_versions.html" %}
 {% endif %}
 
 <h3>Tags</h3>
-{% include "excerpts/excerpt_tags.html" %}
+{% include "excerpts/excerpts/_excerpt_tags.html" %}
 
 <input type="text" placeholder="Search unused tags…">
-
-<h3>Projects</h3>
-{% include "excerpts/excerpt_projects.html" %}
-
-<a
-	class="add"
-	hx-get="/excerpts/excerpt/{{ excerpt.id }}/add_project/"
-	hx-trigger="click"
-	hx-target="this"
-	hx-swap="outerHTML"
->
-	Add project
-</a>
-
 
 {% comment %}<h3>Metadata</h3>{% endcomment %}
 {% comment %}<p>{{ excerpt.metadata }}</p>{% endcomment %}

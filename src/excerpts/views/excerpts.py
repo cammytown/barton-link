@@ -12,7 +12,6 @@ from ..models import \
         ExcerptSimilarity,\
         Tag,\
         TagType,\
-        Project,\
         Character
 
 
@@ -64,9 +63,11 @@ def search(request):
 
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
-        return render(request, "excerpts/excerpt_list.html", context)
+        return render(request, "excerpts/excerpts/_excerpt_list.html", context)
+
+    # If browser request
     else:
-        return render(request, "excerpts/excerpt_search.html", context)
+        return render(request, "excerpts/excerpts/excerpt_search.html", context)
 
 def excerpt(request, excerpt_id):
     # If HTMX request
@@ -82,7 +83,7 @@ def excerpt_html(request, excerpt_id):
     # If GET request
     if request.method == "GET":
         context = { "excerpt": excerpt }
-        return render(request, "excerpts/excerpt_page.html", context)
+        return render(request, "excerpts/excerpts/excerpt_page.html", context)
 
     # If DELETE request
     elif request.method == "DELETE":
@@ -96,7 +97,7 @@ def excerpt_htmx(request, excerpt_id):
         # If GET request
         case "GET":
             context = { "excerpt": excerpt }
-            return render(request, "excerpts/excerpt_editor.html", context)
+            return render(request, "excerpts/excerpts/_excerpt_editor.html", context)
 
         # If PUT request
         case "PUT":
@@ -115,7 +116,7 @@ def excerpt_htmx(request, excerpt_id):
 
             # Render excerpt
             context = { "excerpt": excerpt }
-            return render(request, "excerpts/excerpt.html", context)
+            return render(request, "excerpts/excerpts/_excerpt.html", context)
 
         case "DELETE":
             excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -136,7 +137,7 @@ def add_tag(request, excerpt_id, tag_id):
 
     excerpt.tags.add(tag)
 
-    return render(request, "excerpts/excerpt_tags.html", { "excerpt": excerpt })
+    return render(request, "excerpts/excerpts/_excerpt_tags.html", { "excerpt": excerpt })
 
 def add_autotag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
@@ -146,7 +147,7 @@ def add_autotag(request, excerpt_id, tag_id):
     excerpt.tags.add(tag, through_defaults={ "is_autotag": True })
 
     return render(request,
-                  "excerpts/excerpt_tags.html",
+                  "excerpts/excerpts/_excerpt_tags.html",
                   {
                       "excerpt": excerpt,
                       "show_unused_tags": False
@@ -159,68 +160,5 @@ def remove_tag(request, excerpt_id, tag_id):
     excerpt.tags.remove(tag)
 
     return render(request,
-                  "excerpts/excerpt_tags.html",
+                  "excerpts/excerpts/_excerpt_tags.html",
                   { "excerpt": excerpt })
-
-def add_project(request, excerpt_id, project_id=None):
-    """
-    Add a project to an excerpt.
-
-    If a project_id is provided, add the project with that id to the excerpt.
-    Otherwise, create a new project and add it to the excerpt.
-    """
-
-    # Get excerpt
-    excerpt = Excerpt.objects.get(id=excerpt_id)
-
-    # If project_id is provided
-    if project_id:
-        # Get project
-        #@TODO Handle case where project_id is invalid
-        project = Project.objects.get(id=project_id)
-
-        # Add project to excerpt
-        excerpt.projects.add(project)
-
-        return render(request,
-                      "excerpts/excerpt_projects.html",
-                      { "excerpt": excerpt })
-
-    else:
-        # If request is POST
-        if request.method == "POST":
-            # Get project_name from POST
-            project_name = request.POST["project_name"]
-
-            # Create project
-            project = Project(name=project_name)
-            project.save()
-
-            # Add project to excerpt
-            excerpt.projects.add(project)
-
-            return render(request,
-                          "excerpts/excerpt_projects.html",
-                          { "excerpt": excerpt, })
-
-        # If request is GET
-        elif request.method == "GET":
-            # Render add project form
-            return render(request,
-                          "excerpts/add_project.html",
-                          { "excerpt": excerpt, })
-
-        else:
-            #@REVISIT
-            return HttpResponse("Invalid request method.")
-
-def remove_project(request, excerpt_id, project_id):
-    excerpt = Excerpt.objects.get(id=excerpt_id)
-    project = Project.objects.get(id=project_id)
-
-    excerpt.projects.remove(project)
-
-    return render(request,
-                  "excerpts/excerpt_projects.html",
-                  { "excerpt": excerpt, })
-
