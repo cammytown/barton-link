@@ -1,10 +1,18 @@
 <form
 	class="tag editor"
+{% if tag.id %}
 	hx-put="/excerpts/tags/{{ tag.id }}"
+{% else %}
+	hx-post="/excerpts/tags"
+{% endif %}
 	hx-target="this"
 	hx-swap="outerHTML"
 >
-	<input name="tag_name" value="{{ tag.name }}" />
+	<input
+		name="tag_name"
+		value="{{ tag.name }}"
+		placeholder="Tag name"
+	/>
 
 	<select name="tag_type_id">
 		{% comment %}#@REVISIT:{% endcomment %}

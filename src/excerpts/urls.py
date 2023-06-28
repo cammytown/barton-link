@@ -21,6 +21,7 @@ urlpatterns = [
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
 
     path("tags", views.tags, name="tags"),
+    path("tags/create", views.create_tag, name="create_tag"),
     path("tags/<int:tag_id>", views.tag, name="tag"),
     path("tags/<int:tag_id>/edit", views.edit_tag, name="tag"),
     path("tags/<int:tag_id>/split", views.split_tag, name="split_tag"),

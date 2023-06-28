@@ -9,7 +9,15 @@
 {% endfor %}
 
 <a
-	hx-get="/excerpts/tag_types/create"
+	hx-get="/excerpts/tags/create"
+	hx-trigger="click"
+	hx-swap="outerHTML"
+>
+	Create tag
+</a>
+
+<a
+	hx-get="/excerpts/tag-types/create"
 	hx-trigger="click"
 	hx-swap="outerHTML"
 >

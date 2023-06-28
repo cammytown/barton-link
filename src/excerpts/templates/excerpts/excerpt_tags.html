@@ -2,26 +2,7 @@
 	<div class="excerpt-tags">
 		{% for excerpttag in excerpt.excerpttag_set.all %}
 		{% with tag=excerpttag.tag %}
-		<div class="block tag{% if excerpttag.is_autotag %} autotag{% endif %}">
-			<div class="block-controls">
-				<a
-					hx-post="/excerpts/excerpt/{{ excerpt.id }}/remove_tag/{{ tag.id }}"
-					hx-trigger="click"
-					class="block-control red"
-				>
-					x
-				</a>
-
-				<a
-					href="/excerpts/tags/{{ tag.id }}"
-					class="block-control tag-link blue"
-				>
-					i
-				</a>
-			</div>
-
-			{{ tag.name }}
-		</div>
+			{% include "excerpts/tag.html" %}
 		{% endwith %}
 		{% endfor %}
 	</div>
