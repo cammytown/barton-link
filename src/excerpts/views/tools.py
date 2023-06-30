@@ -157,12 +157,25 @@ def import_excerpts(request):
                 excerpts += mdParser.parse_text(file_content,
                                                 default_tags + filename_tags)
 
+            # Check for duplicate excerpts
+            print("Checking for duplicate excerpts...")
+            duplicates = []
+            for excerpt in excerpts:
+                # If excerpt is a duplicate
+                if Excerpt.objects.filter(content=excerpt.excerpt):
+                    # Add excerpt to duplicates
+                    duplicates.append(excerpt)
+
+            # Remove duplicates from excerpts
+            excerpts = [excerpt for excerpt in excerpts if excerpt not in duplicates]
+
             # Save excerpts to session as dicts
             request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
 
             # Present confirmation page
             return render(request, "excerpts/import/_import_confirmation.html", {
                 "excerpts": excerpts,
+                "duplicates": duplicates,
                 "default_tags": default_tags,
             })
 
@@ -202,11 +215,42 @@ def import_excerpts_confirm(request):
     parser_excerpts = [ParserExcerpt.from_dict(excerpt) for excerpt in excerpts]
 
     print("Adding excerpts...")
-    for parser_excerpt in parser_excerpts:
-        print(f"Adding excerpt: {parser_excerpt}")
-        # add_parser_excerpt(parser_excerpt)
+    # Add excerpts; checking for duplicates
+    # Any duplicates should be internal to the list of excerpts since we
+    # already checked for duplicates in the import_excerpts view
+    #@REVISIT is this confusing or precarious? can we make it clearer? we rely on this being true
 
-def add_parser_excerpt(parser_excerpt: ParserExcerpt):
+    internal_duplicates = []
+    for parser_excerpt in parser_excerpts:
+        # Create database Excerpt from ParserExcerpt
+        instance, created = actualize_parser_excerpt(parser_excerpt)
+
+        if not created:
+            print(f"Duplicate excerpt: {instance}")
+            internal_duplicates.append(instance)
+
+    # Remove excerpts from session
+    del request.session["excerpts"]
+
+    # Return import success page
+    return render(request, "excerpts/import/_import_success.html", {
+        "excerpts": parser_excerpts,
+        "internal_duplicates": internal_duplicates,
+    })
+
+#@TODO probably:
+# def import_excerpts_cancel(request):
+#     """
+#     Cancel import excerpts.
+#     """
+
+#     # Remove excerpts from session
+#     del request.session["excerpts"]
+
+#     # Return import cancel page
+#     return render(request, "excerpts/import/_import_cancel.html")
+
+def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     """
     Add excerpt from parser excerpt.
     """
@@ -216,13 +260,15 @@ def add_parser_excerpt(parser_excerpt: ParserExcerpt):
     # Add children
     children = []
     for child in parser_excerpt.children:
-        children.append(add_parser_excerpt(child))
+        child_instance, _ = actualize_parser_excerpt(child)
+        children.append(child_instance)
 
-    # Create Excerpt instance
-    excerpt_instance = Excerpt(
-        content=parser_excerpt.excerpt,
-        metadata=parser_excerpt.metadata,
-    )
+    # Create excerpt instance or get existing identical instance
+    excerpt_instance, created = Excerpt.objects.get_or_create(
+            content=parser_excerpt.excerpt,)
+
+    # Set excerpt instance attributes
+    excerpt_instance.metadata = parser_excerpt.metadata
 
     # Save excerpt instance (create id)
     excerpt_instance.save()
@@ -230,6 +276,7 @@ def add_parser_excerpt(parser_excerpt: ParserExcerpt):
     # Add default tags
     for tag in parser_excerpt.tags:
         # Get or create tag
+        #@TODO keep track of created tags; show user
         tag_instance, _ = Tag.objects.get_or_create(name=tag)
 
         # Add tag to excerpt
@@ -237,13 +284,15 @@ def add_parser_excerpt(parser_excerpt: ParserExcerpt):
 
     # Add children
     for child in children:
+        # Django won't duplicate children; safe to use add()
+        #@REVISIT this feels scary. maybe just check anyway?
         excerpt_instance.children.add(child)
 
     # Save excerpt instance again
     #@REVISIT have to save twice because both need id, right?
     excerpt_instance.save()
 
-    return excerpt_instance
+    return excerpt_instance, created
 
 def gdocs_test(request):
     # Initialize Google Docs API

@@ -9,6 +9,8 @@
 		hx-swap="outerHTML"
 		hx-target="#import-confirmation"
 	>
+		{% csrf_token %}
+
 		<h2>Default Tags</h2>
 
 		<p>Select the tags that will be applied to all imported excerpts.</p>
@@ -74,7 +76,7 @@
 			</label>
 		</div>
 
-		<button type="submit">Import</button>
+		<button type="submit">Preview Import</button>
 	</form>
 
 	{% include "excerpts/import/_import_confirmation.html" %}

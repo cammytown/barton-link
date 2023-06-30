@@ -1,0 +1,21 @@
+<div id="import-confirmation">
+	<h2>Import Successful</h2>
+
+	<p>
+		Successfully imported {{ excerpts|length }} excerpts.
+	</p>
+
+	{% if internal_duplicates %}
+		<h3>Duplicate Excerpts</h3>
+
+		<p>
+			These excerpts were encountered twice in the import files.
+		</p>
+
+		<ul>
+			{% for excerpt in internal_duplicates %}
+				{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+			{% endfor %}
+		</ul>
+	{% endif %}
+</div>

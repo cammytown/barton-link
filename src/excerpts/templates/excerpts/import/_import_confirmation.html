@@ -6,15 +6,32 @@
 >
 	{% csrf_token %}
 
+	<h2>Import Confirmation</h2>
+
 	<ul>
 		{% for excerpt in excerpts %}
 			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
 		{% endfor %}
 	</ul>
 
-{% if excerpts %}
+	{% if duplicates %}
+	<h3>Duplicate Excerpts</h3>
+
+	<p>
+		These excerpts already exist in the database. They will not be
+		duplicated, but their tags and relationships will be updated.
+	</p>
+
+	<ul>
+		{% for excerpt in duplicates %}
+			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+		{% endfor %}
+	</ul>
+	{% endif %}
+
+	{% if excerpts or duplicates %}
 	<div class="buttons">
 		<button type="submit" class="button">Import For Real</button>
 	</div>
-{% endif %}
+	{% endif %}
 </form>

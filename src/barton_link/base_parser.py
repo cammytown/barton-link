@@ -3,12 +3,19 @@ class ParserExcerpt:
     Parser excerpt.
     """
 
-    def __init__(self, excerpt, metadata = None, tags = [], indent_level = 0):
+    def __init__(self,
+                 excerpt,
+                 metadata = None,
+                 tags = [],
+                 indent_level = 0,
+                 # is_duplicate = False
+                 ):
         self.excerpt = excerpt
         self.children = []
         self.tags = tags
         self.metadata = metadata
         self.indent_level = indent_level
+        # self.is_duplicate = is_duplicate
 
     def __repr__(self):
         return "<Excerpt: {}>".format(self.excerpt)
@@ -26,6 +33,8 @@ class ParserExcerpt:
             'metadata': self.metadata,
             'tags': self.tags,
             'children': [child.to_dict() for child in self.children],
+            'indent_level': self.indent_level,
+            # 'is_duplicate': self.is_duplicate
         }
 
     @staticmethod
@@ -36,7 +45,10 @@ class ParserExcerpt:
 
         excerpt = ParserExcerpt(data['excerpt'],
                                 metadata = data['metadata'],
-                                tags = data['tags'])
+                                tags = data['tags'],
+                                indent_level = data['indent_level'],
+                                # is_duplicate = data['is_duplicate']
+                                )
 
         excerpt.children = [ParserExcerpt.from_dict(child)
                             for child in data['children']]

@@ -64,6 +64,9 @@ class ExcerptRelationship(models.Model):
     child = models.ForeignKey('Excerpt',
                               on_delete=models.CASCADE,
                               related_name='child')
+    
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.parent} - {self.child}"

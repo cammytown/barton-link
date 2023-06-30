@@ -44,10 +44,13 @@ class MarkdownParser(BaseParser):
 
             # If line is not a header
             else:
-                # If line is list item (starts with "- ")
-                if line.startswith("- "):
+                list_prefixes = ["- ", "* ", "| "]
+
+                # If line starts with a list prefix
+                if line.startswith(tuple(list_prefixes)):
                     # Get excerpt
-                    excerpt = line.lstrip("- ").strip()
+                    excerpt = line.lstrip("-*| ")
+
                 # If line is not a list item
                 #@REVISIT just treating it as an excerpt
                 else:
