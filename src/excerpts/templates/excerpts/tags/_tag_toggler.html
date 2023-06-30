@@ -1,0 +1,5 @@
+<div class="blocks tags toggler">
+	{% for tag in tags %}
+		{% include "excerpts/tags/_tag_toggle.html" with toggle_on=False %}
+	{% endfor %}
+</div>

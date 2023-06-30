@@ -1,0 +1,14 @@
+<div
+	class="block tag{% if not toggle_on %} inactive{% endif %}"
+	{% if not toggle_on %}hx-post{% else %}hx-delete{% endif %}="/excerpts/tags/{{ tag.id }}/toggle"
+	hx-trigger="click"
+	hx-swap="outerHTML"
+	hx-target="this"
+>
+	{% comment %}#@REVISIT is just having a checkbox more sensible than doing a whole htmx thing?{% endcomment %}
+	{% comment %}<input type="checkbox" {% if toggle_on %}checked{% endif %} />{% endcomment %}
+	{% if toggle_on %}<input type="hidden" name="toggled_tags[]" value="{{ tag.id }}" />{% endif %}
+	{% if toggle_on %}✓{% else %}✗{% endif %}
+
+	{{ tag.name }}
+</div>

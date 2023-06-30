@@ -26,7 +26,7 @@ def search(request):
     search = request.GET.get("search", "")
 
     # Search for excerpts
-    excerpts = Excerpt.objects.filter(content__icontains=search)
+    excerpts = Excerpt.objects.filter(content__icontains=search).order_by("-id")
     # excerpts = Excerpt.objects.order_by("-id")
 
     paginator = Paginator(excerpts, page_size)

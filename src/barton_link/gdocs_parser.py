@@ -10,24 +10,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from .base_parser import BaseParser
 # from .models import Excerpt, Tag
 
-class GDocs:
+class GDocsParser(BaseParser):
     creds: Credentials = None
     scopes = ['https://www.googleapis.com/auth/documents.readonly']
-
-    state = {
-        # 'document_id': None,
-        'document_title': None,
-        'heading_hierarchy': [],
-        'current_heading': None,
-        # 'working_insert': None,
-        'excerpts': [],
-        'category_excerpts': [],
-    }
-
     config_dir = appdirs.user_config_dir('barton-link', 'barton-link') + '/gdocs'
-
     cache_dir = appdirs.user_cache_dir('barton-link', 'barton-link')
 
     def __init__(self):
@@ -129,11 +118,7 @@ class GDocs:
             # if idx > offset + 20: #@
             #     break
 
-        # Add (reversed) category_excerpts to excerpts
-        self.state['excerpts'] += self.state['category_excerpts'][::-1]
-
-        # Reset category_excerpts
-        self.state['category_excerpts'] = []
+        self.close_heading()
 
         # # Remove trailing comma
         # self.state['working_insert'] = self.state['working_insert'][:-1]
@@ -378,42 +363,6 @@ class GDocs:
 
     #     return insert_statement
 
-    def update_heading(self, heading, level):
-        # Reduce level by 1 (first gdocs heading is level 1, we want 0)
-        level -= 1
-
-        # Reverse category_excerpts and add to excerpts
-        #@TODO-3 this is specific to our purposes of vaguely attempting to
-        # vaguely add entries in the order we added them to the document
-        self.state['excerpts'] += self.state['category_excerpts'][::-1]
-
-        # Reset category_excerpts
-        self.state['category_excerpts'] = []
-
-        # If level is 0, reset heading hierarchy
-        if level == 0:
-            self.state['heading_hierarchy'] = [heading]
-            self.state['current_heading'] = heading
-
-        # If level is > 0
-        elif level > 0:
-            cur_level = len(self.state['heading_hierarchy']) - 1
-            diff = level - cur_level
-
-            # If level is greater than current heading level
-            if diff > 0:
-                # Pad empty heading levels
-                self.state['heading_hierarchy'] += [''] * diff
-
-            # If level is less than or equal to current heading level
-            else:
-                # Remove trailing headings
-                self.state['heading_hierarchy'] = \
-                        self.state['heading_hierarchy'][:level + 1]
-
-            # Update heading hierarchy
-            self.state['heading_hierarchy'][level] = heading
-
     # def print_document(self, document):
     #     print(document)
     #     print('The title of the document is: {}'.format(document.get('title')))
@@ -427,7 +376,7 @@ class GDocs:
     #         f.write(body_pretty)
 
 if __name__ == '__main__':
-    gdocs = GDocs()
+    gdocs = GDocsParser()
     gdocs.load_credentials()
     # gdocs.parse_file_as_document('testing.json')
     # document = gdocs.get_document('1bIMq-1G-Wzne1Rxu-ZOv5cFINq2pY9OVvnDntn_2Qb4')

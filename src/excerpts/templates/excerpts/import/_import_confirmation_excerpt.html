@@ -1,0 +1,20 @@
+<li>
+	{{ excerpt.excerpt }}
+
+	<div class="tags blocks">
+		{% for tag in excerpt.tags %}
+			<span class="block tag">{{ tag }}</span>
+		{% endfor %}
+	</div>
+
+	{% if excerpt.children %}
+		<ul>
+		{% for child in excerpt.children %}
+			{% with excerpt=child %}
+			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+			{% endwith %}
+		{% endfor %}
+
+		</ul>
+	{% endif %}
+</li>

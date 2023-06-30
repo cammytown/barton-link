@@ -22,6 +22,7 @@ urlpatterns = [
     path("tags/<int:tag_id>/edit", views.edit_tag, name="tag"),
     path("tags/<int:tag_id>/split", views.split_tag, name="split_tag"),
     path("tags/<int:tag_id>/split/add-split-field", views.add_split_field, name="add_split_field"),
+    path("tags/<int:tag_id>/toggle", views.toggle_tag, name="toggle_tag"),
     # path("tag/<int:tag_id>/merge", views.merge_tag, name="merge_tag"),
 
     path("tag-types", views.tag_types, name="tag_types"),
@@ -33,7 +34,8 @@ urlpatterns = [
     path("autotag/<int:excerpt_id>", views.autotag_excerpts, name="autotag"),
     # path("analyze-similarities/", views.analyze_similarities, name="analyze_similarities"),
 
-    path("import/", views.import_excerpts, name="import"),
+    path("import", views.import_excerpts, name="import"),
+    path("confirm-import", views.import_excerpts_confirm, name="import_confirm"),
 
     path("gdocs-test", views.gdocs_test, name="test"),
 ]

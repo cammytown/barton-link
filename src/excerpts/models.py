@@ -57,12 +57,32 @@ class ExcerptTag(models.Model):
     def __str__(self):
         return f"{self.excerpt} - {self.tag}"
 
+class ExcerptRelationship(models.Model):
+    parent = models.ForeignKey('Excerpt',
+                               on_delete=models.CASCADE,
+                               related_name='parent')
+    child = models.ForeignKey('Excerpt',
+                              on_delete=models.CASCADE,
+                              related_name='child')
+
+    def __str__(self):
+        return f"{self.parent} - {self.child}"
+
 class Excerpt(SoftDeleteModel):
     content = models.TextField()
-    tags = models.ManyToManyField(Tag, through='ExcerptTag', related_name='excerpts')
-    characters = models.ManyToManyField(Character)
 
-    metadata = models.TextField()
+    tags = models.ManyToManyField(Tag,
+                                  through='ExcerptTag',
+                                  related_name='excerpts')
+
+    characters = models.ManyToManyField(Character)
+    
+    parents = models.ManyToManyField('self',
+                                     through='ExcerptRelationship',
+                                     symmetrical=False,
+                                     related_name='children')
+
+    metadata = models.TextField(null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

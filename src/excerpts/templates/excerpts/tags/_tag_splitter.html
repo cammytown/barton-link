@@ -2,16 +2,6 @@
 	hx-post="/excerpts/tags/{{ tag.id }}/split"
 	hx-swap="outerHTML"
 >
-	{% comment %}<input                         {% endcomment %}
-	{% comment %}    name="tag_name_1"          {% endcomment %}
-	{% comment %}    value=""                   {% endcomment %}
-	{% comment %}    placeholder="Tag name 1" />{% endcomment %}
-
-	{% comment %}<input                         {% endcomment %}
-	{% comment %}    name="tag_name_2"          {% endcomment %}
-	{% comment %}    value=""                   {% endcomment %}
-	{% comment %}    placeholder="Tag name 2" />{% endcomment %}
-
 	{% include "excerpts/tags/_tag_split_field.html" %}
 	{% include "excerpts/tags/_tag_split_field.html" %}
 

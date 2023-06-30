@@ -1,0 +1,20 @@
+<form
+	id="import-confirmation"
+	hx-post="{% url 'import_confirm' %}"
+	hx-target="this"
+	hx-swap="outerHTML"
+>
+	{% csrf_token %}
+
+	<ul>
+		{% for excerpt in excerpts %}
+			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+		{% endfor %}
+	</ul>
+
+{% if excerpts %}
+	<div class="buttons">
+		<button type="submit" class="button">Import For Real</button>
+	</div>
+{% endif %}
+</form>

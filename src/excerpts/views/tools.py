@@ -1,3 +1,5 @@
+import re
+
 from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 
@@ -5,7 +7,9 @@ from barton_link.barton_link import BartonLink
 from ..models import Excerpt, ExcerptSimilarity, Tag, TagType
 
 barton_link = BartonLink()
-from barton_link.gdocs import GDocs
+from barton_link.base_parser import ParserExcerpt
+from barton_link.gdocs_parser import GDocsParser
+from barton_link.markdown_parser import MarkdownParser
 
 def analyze_similarities(request):
     """
@@ -115,12 +119,135 @@ def import_excerpts(request):
                 "tag_types": tag_types,
                 })
 
+        case "POST":
+            # Get files from multiple file input
+            files = request.FILES.getlist("files")
+
+            # Get default tags
+            default_tags = request.POST.getlist("toggled_tags[]")
+            #@REVISIT .name is weird but I guess I want to keep it as str until
+            #@ filename tags are real
+            default_tags = [Tag.objects.get(id=tag_id).name for tag_id in default_tags]
+
+            filename_to_tag_regex = request.POST.get("filename_to_tag_regex")
+            regex_group_separator = request.POST.get("regex_group_separator")
+
+            #@TEMPORARY
+            mdParser = MarkdownParser()
+
+            excerpts = []
+
+            # Read files
+            print("Reading files...")
+            for file in files:
+                # If filename_to_tag_regex is not empty
+                if filename_to_tag_regex:
+                    # Get filename
+                    filename = file.name
+
+                    # Get tags from filename
+                    filename_tags = get_tags_from_filename(filename,
+                                                           filename_to_tag_regex,
+                                                           regex_group_separator)
+
+                else:
+                    filename_tags = []
+
+                file_content = file.read().decode("utf-8")
+                excerpts += mdParser.parse_text(file_content,
+                                                default_tags + filename_tags)
+
+            # Save excerpts to session as dicts
+            request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
+
+            # Present confirmation page
+            return render(request, "excerpts/import/_import_confirmation.html", {
+                "excerpts": excerpts,
+                "default_tags": default_tags,
+            })
+
         case _:
             return HttpResponseNotFound()
 
+def get_tags_from_filename(filename: str,
+                           regex: str,
+                           regex_group_separator = None) -> list[str]:
+    """
+    Get tags from filename using regex.
+    """
+
+    # Get matches
+    matches = re.findall(regex, filename)
+
+    # If regex_group_separator is not None
+    if regex_group_separator:
+        # Split matches
+        matches = [match.split(regex_group_separator) for match in matches]
+
+        # Flatten matches
+        matches = [match for sublist in matches for match in sublist]
+
+    # Return matches
+    return matches
+
+def import_excerpts_confirm(request):
+    """
+    Confirm import excerpts.
+    """
+
+    # Get excerpts from session
+    excerpts = request.session["excerpts"]
+
+    # Convert to ParserExcerpt
+    parser_excerpts = [ParserExcerpt.from_dict(excerpt) for excerpt in excerpts]
+
+    print("Adding excerpts...")
+    for parser_excerpt in parser_excerpts:
+        print(f"Adding excerpt: {parser_excerpt}")
+        # add_parser_excerpt(parser_excerpt)
+
+def add_parser_excerpt(parser_excerpt: ParserExcerpt):
+    """
+    Add excerpt from parser excerpt.
+    """
+
+    print(f"Adding excerpt: {parser_excerpt}")
+
+    # Add children
+    children = []
+    for child in parser_excerpt.children:
+        children.append(add_parser_excerpt(child))
+
+    # Create Excerpt instance
+    excerpt_instance = Excerpt(
+        content=parser_excerpt.excerpt,
+        metadata=parser_excerpt.metadata,
+    )
+
+    # Save excerpt instance (create id)
+    excerpt_instance.save()
+
+    # Add default tags
+    for tag in parser_excerpt.tags:
+        # Get or create tag
+        tag_instance, _ = Tag.objects.get_or_create(name=tag)
+
+        # Add tag to excerpt
+        excerpt_instance.tags.add(tag_instance)
+
+    # Add children
+    for child in children:
+        excerpt_instance.children.add(child)
+
+    # Save excerpt instance again
+    #@REVISIT have to save twice because both need id, right?
+    excerpt_instance.save()
+
+    return excerpt_instance
+
 def gdocs_test(request):
     # Initialize Google Docs API
-    gdocs = GDocs()
+    gdocs = GDocsParser()
 
     # Load credentials
     gdocs.load_credentials()

@@ -4,11 +4,11 @@ import spacy
 from sentence_transformers import SentenceTransformer, util
 
 # from .database import Database
-from .gdocs import GDocs
+from .gdocs_parser import GDocsParser
 
 class BartonLink:
     # db: Database
-    gdocs: Optional[GDocs] = None
+    gdocs: Optional[GDocsParser] = None
     spacy_model: Optional[spacy.Language] = None
     sbert: Optional[SentenceTransformer] = None
 
@@ -94,7 +94,7 @@ class BartonLink:
     def load_google_doc(self, document_id):
         if not self.gdocs:
             # Initialize Google Docs API
-            self.gdocs = GDocs()
+            self.gdocs = GDocsParser()
 
             # Load credentials
             self.gdocs.load_credentials()

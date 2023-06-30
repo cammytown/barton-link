@@ -272,6 +272,33 @@ def split_tag(request, tag_id):
     else:
         return HttpResponse(status=405)
 
+#@REVISIT weird naming/architecture; probably more appropriate to have two
+#@ different get requests; one for toggle on template and for off template
+def toggle_tag(request, tag_id):
+    """
+    Returns a partial template for the tag and a hidden input element for use
+    in the tag toggle form.
+    """
+
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        # toggle_on true if POST, false if DELETE
+        if request.method == "POST":
+            toggle_on = True
+        elif request.method == "DELETE":
+            toggle_on = False
+        else:
+            return HttpResponse(status=405)
+
+        # Get tag
+        tag = Tag.objects.get(id=tag_id)
+
+        return render(request,
+                      "excerpts/tags/_tag_toggle.html",
+                      { "tag": tag, "toggle_on": toggle_on })
+    else:
+        return HttpResponse(status=405)
+
 #@REVISIT naming
 def add_split_field(request, tag_id):
     # If HTMX request

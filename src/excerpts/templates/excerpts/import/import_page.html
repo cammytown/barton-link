@@ -5,18 +5,77 @@
 {% block content %}
 	<form
 		hx-post="/excerpts/import"
+		hx-encoding="multipart/form-data"
 		hx-swap="outerHTML"
-		hx-target="closest form"
+		hx-target="#import-confirmation"
 	>
 		<h2>Default Tags</h2>
-		{% include "excerpts/import/_import_tags.html" %}
 
-		<textarea
-			name="excerpts"
-			placeholder="Paste excerpts here"
-		></textarea>
+		<p>Select the tags that will be applied to all imported excerpts.</p>
+
+		{% include "excerpts/tags/_tag_toggler.html" %}
+
+		{% comment %}<div>                                    {% endcomment %}
+		{% comment %}    <textarea                            {% endcomment %}
+		{% comment %}        name="excerpts"                  {% endcomment %}
+		{% comment %}        placeholder="Paste excerpts here"{% endcomment %}
+		{% comment %}    ></textarea>                         {% endcomment %}
+		{% comment %}</div>                                   {% endcomment %}
+
+		<div>
+			<h2>Files</h2>
+
+			<input
+				type="file"
+				name="files"
+				multiple
+				{% comment %}accept=".txt,.md"{% endcomment %}
+			/>
+
+			<p>
+				Files must be in Markdown format.
+			</p>
+
+			<h3>Filename to Tag Regex</h3>
+
+			<input
+				type="text"
+				name="filename_to_tag_regex"
+				value="^[A-Za-z0-9]+_(.*)\.md$"
+				placeholder="(i.e. '^[A-Za-z0-9]+_(.*)\.md$')"
+			/>
+
+
+			<h3>Regex Group Separator</h3>
+
+			<p>
+				The captured group will be split by this delimiter and each
+				segment will be used as a tag.
+			</p>
+
+			<input
+				type="text"
+				name="regex_group_separator"
+				placeholder="(i.e. '-')"
+			/>
+		</div>
+
+		<h2>Format</h2>
+
+		<div>
+			{% comment %}<label>                                                       {% endcomment %}
+			{% comment %}    <input type="radio" name="format" value="plain" checked />{% endcomment %}
+			{% comment %}    Plain Text                                                {% endcomment %}
+			{% comment %}</label>                                                      {% endcomment %}
+
+			<label>
+				<input type="radio" name="format" value="markdown" checked />
+				Markdown
+			</label>
+		</div>
 
 		<button type="submit">Import</button>
 	</form>
+
+	{% include "excerpts/import/_import_confirmation.html" %}
 {% endblock %}
-```
