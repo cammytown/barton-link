@@ -1,7 +1,18 @@
-<div class="excerpt-list-single">
+<li class="excerpt-list-single">
 	<a class="excerpt" href="/excerpts/excerpt/{{ excerpt.id }}">
 		{{ excerpt.content|linebreaksbr }}
 	</a>
 
 	{% include "excerpts/excerpts/_excerpt_tags.html" with show_unused_tags=False %}
-</div>
+
+	{% if excerpt.children %}
+		<ul>
+		{% for child in excerpt.children.all %}
+			{% with excerpt=child %}
+			{% include 'excerpts/excerpts/_excerpt_list_single.html' %}
+			{% endwith %}
+		{% endfor %}
+
+		</ul>
+	{% endif %}
+</li>

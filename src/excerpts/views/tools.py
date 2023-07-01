@@ -4,7 +4,11 @@ from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 
 from barton_link.barton_link import BartonLink
-from ..models import Excerpt, ExcerptSimilarity, Tag, TagType
+from ..models import Excerpt,\
+        ExcerptSimilarity,\
+        ExcerptVersion,\
+        Tag,\
+        TagType
 
 barton_link = BartonLink()
 from barton_link.base_parser import ParserExcerpt
@@ -162,7 +166,7 @@ def import_excerpts(request):
             duplicates = []
             for excerpt in excerpts:
                 # If excerpt is a duplicate
-                if Excerpt.objects.filter(content=excerpt.excerpt):
+                if Excerpt.objects.filter(content=excerpt.content):
                     # Add excerpt to duplicates
                     duplicates.append(excerpt)
 
@@ -203,6 +207,45 @@ def get_tags_from_filename(filename: str,
     # Return matches
     return matches
 
+def import_file(request):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        match request.method:
+            case "GET":
+                return render(request, "excerpts/import/_file_upload.html")
+            case _:
+                return HttpResponseNotFound()
+
+    # If not HTMX request
+    else:
+        return HttpResponseNotFound()
+
+def import_text(request):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        match request.method:
+            case "GET":
+                return render(request, "excerpts/import/_text_paste.html")
+            case _:
+                return HttpResponseNotFound()
+
+    # If not HTMX request
+    else:
+        return HttpResponseNotFound()
+
+def import_gdocs(request):
+    # If HTMX request
+    if request.headers.get("HX-Request") == "true":
+        match request.method:
+            case "GET":
+                return render(request, "excerpts/import/_gdocs.html")
+            case _:
+                return HttpResponseNotFound()
+
+    # If not HTMX request
+    else:
+        return HttpResponseNotFound()
+
 def import_excerpts_confirm(request):
     """
     Confirm import excerpts.
@@ -220,14 +263,8 @@ def import_excerpts_confirm(request):
     # already checked for duplicates in the import_excerpts view
     #@REVISIT is this confusing or precarious? can we make it clearer? we rely on this being true
 
-    internal_duplicates = []
-    for parser_excerpt in parser_excerpts:
-        # Create database Excerpt from ParserExcerpt
-        instance, created = actualize_parser_excerpt(parser_excerpt)
-
-        if not created:
-            print(f"Duplicate excerpt: {instance}")
-            internal_duplicates.append(instance)
+    # Create database Excerpt from ParserExcerpt
+    excerpts, internal_duplicates = actualize_parser_excerpts(parser_excerpts)
 
     # Remove excerpts from session
     del request.session["excerpts"]
@@ -250,6 +287,26 @@ def import_excerpts_confirm(request):
 #     # Return import cancel page
 #     return render(request, "excerpts/import/_import_cancel.html")
 
+def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
+    """
+    Add excerpts from parser excerpt array.
+    """
+
+    excerpts = []
+    duplicates = []
+
+    for index, parser_excerpt in enumerate(parser_excerpts):
+        print(f"Adding excerpt {index + 1} of {len(parser_excerpts)}...")
+        print(f"Excerpt: {parser_excerpt}")
+        instance, created = actualize_parser_excerpt(parser_excerpt)
+
+        if created:
+            excerpts.append(instance)
+        else:
+            duplicates.append(instance)
+
+    return excerpts, duplicates
+
 def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     """
     Add excerpt from parser excerpt.
@@ -265,7 +322,7 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
 
     # Create excerpt instance or get existing identical instance
     excerpt_instance, created = Excerpt.objects.get_or_create(
-            content=parser_excerpt.excerpt,)
+            content=parser_excerpt.content,)
 
     # Set excerpt instance attributes
     excerpt_instance.metadata = parser_excerpt.metadata
@@ -312,88 +369,14 @@ def gdocs_test(request):
 
     response = f"Loaded {len(document_ids)} document ids."
 
-    # Print all document_ids
-    # for document_id in document_ids:
-    #     response += f"\ndoc: {document_id}"
-
-    # print(response)
-    # exit()
-
     # Load and parse each Google Doc
     for document_id in document_ids:
         # Load document
         document = gdocs.get_document(document_id)
-        excerpt_dicts = gdocs.parse_document(document)
+        parser_excerpts = gdocs.parse_document(document)
 
-        # Turn excerpt_dicts into Excerpt instances
-        excerpt_objs = []
-        for exc_idx, excerpt_dict in enumerate(excerpt_dicts):
-            # Check if excerpt already exists in database
-            if Excerpt.objects.filter(
-                    excerpt=excerpt_dict["excerpt"],
-                    metadata=excerpt_dict["metadata"],
-                    ).exists():
+        excerpts, duplicates = actualize_parser_excerpts(parser_excerpts)
 
-                print("Excerpt already exists in database: " \
-                        + f"{excerpt_dict['excerpt']}")
-
-                excerpt_dict["excerpt_instance"] = None
-
-                # Skip to next excerpt
-                continue
-
-            # If excerpt does not exist in database
-            else:
-                # print(f"Excerpt does not exist in database: {excerpt_dict['excerpt']}")
-
-                # Create Excerpt instance
-                #@REVISIT architecture
-                excerpt_dict["excerpt_instance"] = Excerpt(
-                    excerpt=excerpt_dict["excerpt"],
-                    metadata=excerpt_dict["metadata"],
-                )
-
-                excerpt_objs.append(excerpt_dict["excerpt_instance"])
-
-        # Insert excerpts into database
-        excerpts = Excerpt.objects.bulk_create(excerpt_objs)
-
-        # Create ExcerptVersion instances
-        for excerpt_dict in excerpt_dicts:
-            # If excerpt_instance is None
-            if not excerpt_dict["excerpt_instance"]:
-                # Skip to next excerpt
-                #@REVISIT architecture
-                continue
-
-            excerpt = excerpt_dict["excerpt_instance"]
-
-            # Create ExcerptVersion instance
-            excerpt_version = ExcerptVersion(
-                    excerpt=excerpt,
-                    version=excerpt_dict["version"],
-                    )
-
-            # Save ExcerptVersion instance
-            excerpt_version.save()
-
-        # Add tags to excerpts
-        for excerpt_dict in excerpt_dicts:
-            if "excerpt_instance" not in excerpt_dict:
-                raise Exception("Excerpt instance not found in excerpt_dict")
-
-            # If excerpt_instance is None
-            if not excerpt_dict["excerpt_instance"]:
-                # Skip to next excerpt
-                #@REVISIT architecture
-                continue
-
-            excerpt = excerpt_dict["excerpt_instance"]
-
-            for tag_name in excerpt_dict["tags"]:
-                tag = Tag.objects.get_or_create(name=tag_name)[0]
-                excerpt.tags.add(tag)
-
-        response += f"\nLoaded {len(excerpt_dicts)} excerpts from {document_id}."
+        response += f"\nLoaded {len(parser_excerpts)} excerpts from {document_id}."
 
     return HttpResponse(response)

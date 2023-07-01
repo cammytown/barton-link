@@ -1,7 +1,7 @@
 from .base_parser import BaseParser, ParserExcerpt
 
 class MarkdownParser(BaseParser):
-    last_indent_level = 0
+    # last_indent_level = 0
 
     def parse_text(self, text, default_tags = []):
         """
@@ -58,7 +58,7 @@ class MarkdownParser(BaseParser):
                     excerpt = line
 
                 # Create Excerpt instance
-                excerpt_instance = ParserExcerpt(excerpt=excerpt,
+                excerpt_instance = ParserExcerpt(content=excerpt,
                                                  tags=default_tags[:],
                                                  indent_level=indent_level)
 

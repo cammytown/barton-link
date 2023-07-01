@@ -3,81 +3,51 @@
 {% block title %}Import Excerpts{% endblock %}
 
 {% block content %}
-	<form
-		hx-post="/excerpts/import"
-		hx-encoding="multipart/form-data"
-		hx-swap="outerHTML"
-		hx-target="#import-confirmation"
-	>
-		{% csrf_token %}
+<form
+	hx-post="/excerpts/import"
+	hx-encoding="multipart/form-data"
+	hx-swap="outerHTML"
+	hx-target="#import-confirmation"
+>
+	{% csrf_token %}
 
+	<div>
 		<h2>Default Tags</h2>
 
 		<p>Select the tags that will be applied to all imported excerpts.</p>
 
 		{% include "excerpts/tags/_tag_toggler.html" %}
+	</div>
 
-		{% comment %}<div>                                    {% endcomment %}
-		{% comment %}    <textarea                            {% endcomment %}
-		{% comment %}        name="excerpts"                  {% endcomment %}
-		{% comment %}        placeholder="Paste excerpts here"{% endcomment %}
-		{% comment %}    ></textarea>                         {% endcomment %}
-		{% comment %}</div>                                   {% endcomment %}
+	<div>
+		<h2>Select Input Method</h2>
 
-		<div>
-			<h2>Files</h2>
+		<button
+			hx-target="#input-method-options"
+			hx-get="/excerpts/import/file-upload"
+		>
+			File Upload
+		</button>
 
-			<input
-				type="file"
-				name="files"
-				multiple
-				{% comment %}accept=".txt,.md"{% endcomment %}
-			/>
+		{% comment %}<button                                 {% endcomment %}
+		{% comment %}    hx-target="#input-method-options"   {% endcomment %}
+		{% comment %}    hx-get="/excerpts/import/text-paste"{% endcomment %}
+		{% comment %}>                                       {% endcomment %}
+		{% comment %}    Plain Text                          {% endcomment %}
+		{% comment %}</button>                               {% endcomment %}
 
-			<p>
-				Files must be in Markdown format.
-			</p>
+		{% comment %}<button                              {% endcomment %}
+		{% comment %}    hx-target="#input-method-options"{% endcomment %}
+		{% comment %}    hx-get="/excerpts/import/gdocs"  {% endcomment %}
+		{% comment %}>                                    {% endcomment %}
+		{% comment %}    Google Docs                      {% endcomment %}
+		{% comment %}</button>                            {% endcomment %}
+	</div>
 
-			<h3>Filename to Tag Regex</h3>
+	{% include "excerpts/import/_file_upload.html" %}
 
-			<input
-				type="text"
-				name="filename_to_tag_regex"
-				value="^[A-Za-z0-9]+_(.*)\.md$"
-				placeholder="(i.e. '^[A-Za-z0-9]+_(.*)\.md$')"
-			/>
+	<button type="submit">Preview Import</button>
+</form>
 
-
-			<h3>Regex Group Separator</h3>
-
-			<p>
-				The captured group will be split by this delimiter and each
-				segment will be used as a tag.
-			</p>
-
-			<input
-				type="text"
-				name="regex_group_separator"
-				placeholder="(i.e. '-')"
-			/>
-		</div>
-
-		<h2>Format</h2>
-
-		<div>
-			{% comment %}<label>                                                       {% endcomment %}
-			{% comment %}    <input type="radio" name="format" value="plain" checked />{% endcomment %}
-			{% comment %}    Plain Text                                                {% endcomment %}
-			{% comment %}</label>                                                      {% endcomment %}
-
-			<label>
-				<input type="radio" name="format" value="markdown" checked />
-				Markdown
-			</label>
-		</div>
-
-		<button type="submit">Preview Import</button>
-	</form>
-
-	{% include "excerpts/import/_import_confirmation.html" %}
+{% include "excerpts/import/_import_confirmation.html" %}
 {% endblock %}

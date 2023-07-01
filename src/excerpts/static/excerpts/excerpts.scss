@@ -83,13 +83,14 @@ a {
 }
 
 .excerpt-list-single {
-	display: inline-block;
-	vertical-align: top;
+	//display: inline-block;
+	//vertical-align: top;
 	margin-bottom: 10px;
 
 	a.excerpt {
 		display: inline-block;
 		text-decoration: none;
+		vertical-align: top;
 	}
 }
 

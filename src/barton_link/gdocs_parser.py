@@ -10,7 +10,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from .base_parser import BaseParser
+from .base_parser import BaseParser, ParserExcerpt
 # from .models import Excerpt, Tag
 
 class GDocsParser(BaseParser):
@@ -20,6 +20,8 @@ class GDocsParser(BaseParser):
     cache_dir = appdirs.user_cache_dir('barton-link', 'barton-link')
 
     def __init__(self):
+        super().__init__()
+
         # Create config directory
         os.makedirs(self.config_dir, exist_ok=True)
 
@@ -65,7 +67,7 @@ class GDocsParser(BaseParser):
 
         # If no cached document, retrieve document from Google Docs API
         else:
-            assert False, f'No cached document found at {self.cache_dir}/gdoc-{document_id}.json'
+            # assert False, f'No cached document found at {self.cache_dir}/gdoc-{document_id}.json'
 
             try:
                 print('Loading document from Google Docs API...')
@@ -171,12 +173,6 @@ class GDocsParser(BaseParser):
         return excerpt
 
     def parse_paragraph(self, component):
-        excerpt = {
-            'content': '',
-            'tags': [],
-            'metadata': {},
-        }
-
         # Get component type
         component_type = component.get('paragraph') \
                 .get('paragraphStyle') \
@@ -232,11 +228,13 @@ class GDocsParser(BaseParser):
         component_text = component_text.replace('\v', '\n')
 
         # Check if bullet
-        nesting_level = None #@REVISIT had it as 0 but get('nestingLevel') returns None
+        nesting_level = 0
         bullet = component.get('paragraph').get('bullet')
         if bullet:
             # Get bullet nesting level
             nesting_level = bullet.get('nestingLevel')
+            if nesting_level == None:
+                nesting_level = 0
 
         # Check if heading (if starts within HEADING_*)
         if component_type.startswith('HEADING_'):
@@ -255,13 +253,13 @@ class GDocsParser(BaseParser):
             if not component_text:
                 return
 
-            # If excerpt is nested under another
-            if nesting_level:
-                # Add to previous excerpt
-                #@REVISIT architecture
-                self.state['category_excerpts'][-1]['content'] += '\n===\n' \
-                        + component_text
-                return
+            # # If excerpt is nested under another
+            # if nesting_level:
+            #     # Add to previous excerpt
+            #     #@REVISIT architecture
+            #     self.state['category_excerpts'][-1].content += '\n===\n' \
+            #             + component_text
+            #     return
 
             # Remove empty heading levels
             tags = [tag for tag in self.state['heading_hierarchy'] if tag]
@@ -269,18 +267,26 @@ class GDocsParser(BaseParser):
             # Add document title as tag
             tags.append(self.state['document_title'])
 
+            # Append "dialogue" tag
+            #@TODO-5 for personal purposes
+            tags.append('dialogue')
+
             metadata = {
                 'origin': f'gdocs >> {self.state["document_title"]}' \
                         ' >> {}' \
                         .format(' >> '.join(tags)),
             }
 
-            excerpt['content'] = component_text
-            excerpt['tags'] = tags
-            excerpt['metadata'] = metadata
+            excerpt = ParserExcerpt(content=component_text,
+                                    metadata=metadata,
+                                    tags=tags,
+                                    indent_level=nesting_level)
 
-            # Add to working excerpts
-            self.state['category_excerpts'].append(excerpt)
+
+            self.add_excerpt(excerpt, nesting_level)
+
+            # # Add to working excerpts
+            # self.state['category_excerpts'].append(excerpt)
 
             # return excerpt
 

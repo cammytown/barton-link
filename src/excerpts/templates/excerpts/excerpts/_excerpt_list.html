@@ -22,9 +22,7 @@
 {% if page_obj %}
 <ul>
 {% for excerpt in page_obj %}
-	<li>
-		{% include "excerpts/excerpts/_excerpt_list_single.html" with excerpt=excerpt %}
-	</li>
+	{% include "excerpts/excerpts/_excerpt_list_single.html" with excerpt=excerpt %}
 {% endfor %}
 </ul>
 {% else %}

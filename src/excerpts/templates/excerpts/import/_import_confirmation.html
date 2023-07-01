@@ -8,6 +8,10 @@
 
 	<h2>Import Confirmation</h2>
 
+	<p>
+		{{ excerpts|length }} excerpts will be imported. Review them below.
+	</p>
+
 	<ul>
 		{% for excerpt in excerpts %}
 			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}

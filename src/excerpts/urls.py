@@ -35,6 +35,9 @@ urlpatterns = [
     # path("analyze-similarities/", views.analyze_similarities, name="analyze_similarities"),
 
     path("import", views.import_excerpts, name="import"),
+    path("import/file-upload", views.import_file, name="import_file_upload"),
+    path("import/text-paste", views.import_text, name="import_text_paste"),
+    path("import/gdocs", views.import_gdocs, name="import_gdocs"),
     path("confirm-import", views.import_excerpts_confirm, name="import_confirm"),
 
     path("gdocs-test", views.gdocs_test, name="test"),

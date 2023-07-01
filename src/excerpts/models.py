@@ -33,9 +33,9 @@ class Tag(SoftDeleteModel):
 
     #@REVISIT on_delete i think is wrong:
     type = models.ForeignKey(TagType,
-                                 on_delete=models.CASCADE,
-                                 default=1,
-                                 related_name="tags")
+                             on_delete=models.CASCADE,
+                             default=1,
+                             related_name="tags")
 
     def __str__(self):
         return self.name
@@ -97,12 +97,12 @@ class Excerpt(SoftDeleteModel):
 
         return Tag.objects.exclude(excerpttag__excerpt=self)
 
-    # def save(self, *args, **kwargs):
-    #     super(Excerpt, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        super(Excerpt, self).save(*args, **kwargs)
 
-    #     # Create version if this is a new excerpt
-    #     if not self.versions.exists():
-    #         ExcerptVersion.objects.create(excerpt=self, content=self.content)
+        # Create version if this is a new excerpt
+        if not self.versions.exists():
+            ExcerptVersion.objects.create(excerpt=self, content=self.content)
 
     def __str__(self):
         return self.content

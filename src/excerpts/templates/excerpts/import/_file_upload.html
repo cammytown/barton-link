@@ -1,0 +1,51 @@
+<div id="input-method-options">
+	<h3>File Upload</h3>
+
+	<input
+		type="file"
+		name="files"
+		multiple
+		{% comment %}accept=".txt,.md"{% endcomment %}
+	/>
+
+	<p>
+		Files must be in Markdown format.
+	</p>
+
+	<h3>Filename to Tag Regex</h3>
+
+	<input
+		type="text"
+		name="filename_to_tag_regex"
+		value="^[A-Za-z0-9]+_(.*)\.md$"
+		placeholder="(i.e. '^[A-Za-z0-9]+_(.*)\.md$')"
+	/>
+
+
+	<h3>Regex Group Separator</h3>
+
+	<p>
+		The captured group will be split by this delimiter and each
+		segment will be used as a tag.
+	</p>
+
+	<input
+		type="text"
+		name="regex_group_separator"
+		placeholder="(i.e. '-')"
+	/>
+
+	<h4>Format</h4>
+
+	<div>
+		{% comment %}<label>                                                       {% endcomment %}
+		{% comment %}    <input type="radio" name="format" value="plain" checked />{% endcomment %}
+		{% comment %}    Plain Text                                                {% endcomment %}
+		{% comment %}</label>                                                      {% endcomment %}
+
+		<label>
+			<input type="radio" name="format" value="markdown" checked />
+			Markdown
+		</label>
+	</div>
+</div>

@@ -4,13 +4,13 @@ class ParserExcerpt:
     """
 
     def __init__(self,
-                 excerpt,
+                 content,
                  metadata = None,
                  tags = [],
                  indent_level = 0,
                  # is_duplicate = False
                  ):
-        self.excerpt = excerpt
+        self.content = content
         self.children = []
         self.tags = tags
         self.metadata = metadata
@@ -18,10 +18,10 @@ class ParserExcerpt:
         # self.is_duplicate = is_duplicate
 
     def __repr__(self):
-        return "<Excerpt: {}>".format(self.excerpt)
+        return "<Excerpt: {}>".format(self.content)
 
     def __str__(self):
-        return self.excerpt
+        return self.content
 
     def to_dict(self):
         """
@@ -29,7 +29,7 @@ class ParserExcerpt:
         """
 
         return {
-            'excerpt': self.excerpt,
+            'excerpt': self.content,
             'metadata': self.metadata,
             'tags': self.tags,
             'children': [child.to_dict() for child in self.children],

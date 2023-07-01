@@ -25,8 +25,11 @@ def search(request):
     # Extract search field and filters
     search = request.GET.get("search", "")
 
-    # Search for excerpts
-    excerpts = Excerpt.objects.filter(content__icontains=search).order_by("-id")
+    # Search for excerpts without parents
+    excerpts = Excerpt.objects.filter(
+            content__icontains=search, parent=None
+            ).order_by("-id")
+
     # excerpts = Excerpt.objects.order_by("-id")
 
     paginator = Paginator(excerpts, page_size)
