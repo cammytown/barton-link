@@ -23,25 +23,25 @@
 		<h2>Select Input Method</h2>
 
 		<button
-			hx-target="#input-method-options"
+			hx-target="#import-method-options"
 			hx-get="/excerpts/import/file-upload"
 		>
 			File Upload
 		</button>
 
 		{% comment %}<button                                 {% endcomment %}
-		{% comment %}    hx-target="#input-method-options"   {% endcomment %}
+		{% comment %}    hx-target="#import-method-options"   {% endcomment %}
 		{% comment %}    hx-get="/excerpts/import/text-paste"{% endcomment %}
 		{% comment %}>                                       {% endcomment %}
 		{% comment %}    Plain Text                          {% endcomment %}
 		{% comment %}</button>                               {% endcomment %}
 
-		{% comment %}<button                              {% endcomment %}
-		{% comment %}    hx-target="#input-method-options"{% endcomment %}
-		{% comment %}    hx-get="/excerpts/import/gdocs"  {% endcomment %}
-		{% comment %}>                                    {% endcomment %}
-		{% comment %}    Google Docs                      {% endcomment %}
-		{% comment %}</button>                            {% endcomment %}
+		<button
+			hx-target="#import-method-options"
+			hx-get="/excerpts/import/gdocs"  
+		>                                    
+			Google Docs                      
+		</button>                            
 	</div>
 
 	{% include "excerpts/import/_file_upload.html" %}

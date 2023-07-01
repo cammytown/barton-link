@@ -245,3 +245,15 @@ div.excerpt, form.excerpt {
 	}
 }
 
+#import-method-options {
+	textarea {
+		width: 100%;
+		height: 200px;
+		background: rgb(20, 20, 20);
+		color: rgb(205, 205, 205);
+		border: 1px solid rgb(105, 105, 105);
+		padding: 5px;
+		font-size: 1.2em;
+		line-height: 1.5em;
+	}
+}

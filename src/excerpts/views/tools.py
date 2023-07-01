@@ -1,6 +1,14 @@
-import re
+#@TODO-3 this file is kind-of a mess
 
-from django.http import HttpResponse, HttpResponseNotFound, QueryDict
+import re
+import json
+
+from django.http import HttpResponse,\
+        HttpResponseNotFound,\
+        HttpResponseNotAllowed,\
+        HttpResponseForbidden,\
+        HttpResponseBadRequest,\
+        QueryDict
 from django.shortcuts import render
 
 from barton_link.barton_link import BartonLink
@@ -124,67 +132,30 @@ def import_excerpts(request):
                 })
 
         case "POST":
-            # Get files from multiple file input
-            files = request.FILES.getlist("files")
-
             # Get default tags
             default_tags = request.POST.getlist("toggled_tags[]")
             #@REVISIT .name is weird but I guess I want to keep it as str until
             #@ filename tags are real
             default_tags = [Tag.objects.get(id=tag_id).name for tag_id in default_tags]
 
-            filename_to_tag_regex = request.POST.get("filename_to_tag_regex")
-            regex_group_separator = request.POST.get("regex_group_separator")
+            match request.POST.get("import_method"):
+                case "paste":
+                    #@TODO
+                    return HttpResponse("Paste import not yet implemented.")
 
-            #@TEMPORARY
-            mdParser = MarkdownParser()
+                case "upload":
+                    return post_import_files(request, default_tags)
 
-            excerpts = []
+                case "gdocs":
+                    return post_import_gdocs(request, default_tags)
 
-            # Read files
-            print("Reading files...")
-            for file in files:
-                # If filename_to_tag_regex is not empty
-                if filename_to_tag_regex:
-                    # Get filename
-                    filename = file.name
-
-                    # Get tags from filename
-                    filename_tags = get_tags_from_filename(filename,
-                                                           filename_to_tag_regex,
-                                                           regex_group_separator)
-
-                else:
-                    filename_tags = []
-
-                file_content = file.read().decode("utf-8")
-                excerpts += mdParser.parse_text(file_content,
-                                                default_tags + filename_tags)
-
-            # Check for duplicate excerpts
-            print("Checking for duplicate excerpts...")
-            duplicates = []
-            for excerpt in excerpts:
-                # If excerpt is a duplicate
-                if Excerpt.objects.filter(content=excerpt.content):
-                    # Add excerpt to duplicates
-                    duplicates.append(excerpt)
-
-            # Remove duplicates from excerpts
-            excerpts = [excerpt for excerpt in excerpts if excerpt not in duplicates]
-
-            # Save excerpts to session as dicts
-            request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
-
-            # Present confirmation page
-            return render(request, "excerpts/import/_import_confirmation.html", {
-                "excerpts": excerpts,
-                "duplicates": duplicates,
-                "default_tags": default_tags,
-            })
+                case _:
+                    return HttpResponseBadRequest(json.dumps({
+                        "error": "Invalid import method.",
+                        }))
 
         case _:
-            return HttpResponseNotFound()
+            return HttpResponseNotAllowed(["GET", "POST"])
 
 def get_tags_from_filename(filename: str,
                            regex: str,
@@ -213,12 +184,63 @@ def import_file(request):
         match request.method:
             case "GET":
                 return render(request, "excerpts/import/_file_upload.html")
+
+            # case "POST":
+            #     return post_import_files(request)
+
             case _:
                 return HttpResponseNotFound()
 
     # If not HTMX request
     else:
         return HttpResponseNotFound()
+
+#@REVISIT architecture; esp. handling of default_tags
+def post_import_files(request, default_tags = []):
+    # Get files from multiple file input
+    files = request.FILES.getlist("files")
+
+    filename_to_tag_regex = request.POST.get("filename_to_tag_regex")
+    regex_group_separator = request.POST.get("regex_group_separator")
+
+    #@TEMPORARY
+    mdParser = MarkdownParser()
+
+    parser_excerpts = []
+
+    # Read files
+    print("Reading files...")
+    for file in files:
+        # If filename_to_tag_regex is not empty
+        if filename_to_tag_regex:
+            # Get filename
+            filename = file.name
+
+            # Get tags from filename
+            filename_tags = get_tags_from_filename(filename,
+                                                   filename_to_tag_regex,
+                                                   regex_group_separator)
+
+        else:
+            filename_tags = []
+
+        # Parse file into ParserExcerpt objects
+        file_content = file.read().decode("utf-8")
+        parser_excerpts += mdParser.parse_text(file_content,
+                                        default_tags + filename_tags)
+
+    # Check for duplicate excerpts
+    excerpts, duplicates = check_for_duplicate_excerpts(parser_excerpts)
+
+    # Save excerpts to session as dicts
+    save_excerpts_to_session(request, excerpts)
+
+    # Present confirmation page
+    return render(request, "excerpts/import/_import_confirmation.html", {
+        "excerpts": excerpts,
+        "duplicates": duplicates,
+        "default_tags": default_tags,
+    })
 
 def import_text(request):
     # If HTMX request
@@ -245,6 +267,63 @@ def import_gdocs(request):
     # If not HTMX request
     else:
         return HttpResponseNotFound()
+
+#@REVISIT architecture; move this stuff into a class? get default tags internally?
+def post_import_gdocs(request, default_tags):
+    # Get Google Docs URLs textarea
+    urls = request.POST.getlist("gdocs_urls")
+
+    # Extract document IDs from URLs
+    #@TODO move this to a function?
+    doc_id_regex = r"/document/d/([a-zA-Z0-9-_]+)"
+    document_ids = [re.search(doc_id_regex, url).group(1) for url in urls]
+
+    # Initialize Google Docs API
+    gdocs = GDocsParser()
+
+    # Load credentials
+    gdocs.load_credentials()
+
+    parser_excerpts = []
+
+    # Load and parse each Google Doc
+    for document_id in document_ids:
+        # Load document
+        document = gdocs.get_document(document_id)
+        parser_excerpts += gdocs.parse_document(document)
+
+    # Check for duplicate excerpts
+    excerpts, duplicates = check_for_duplicate_excerpts(parser_excerpts)
+
+    # Save excerpts to session
+    save_excerpts_to_session(request, excerpts)
+
+    # Present confirmation page
+    return render(request, "excerpts/import/_import_confirmation.html", {
+        "excerpts": excerpts,
+        "duplicates": duplicates,
+        "default_tags": default_tags,
+    })
+
+        # excerpts, duplicates = actualize_parser_excerpts(parser_excerpts)
+        # f"\nLoaded {len(parser_excerpts)} excerpts from {document_id}."
+
+def check_for_duplicate_excerpts(excerpts):
+    print("Checking for duplicate excerpts...")
+    duplicates = []
+    for excerpt in excerpts:
+        # If excerpt is a duplicate
+        if Excerpt.objects.filter(content=excerpt.content):
+            # Add excerpt to duplicates
+            duplicates.append(excerpt)
+
+    # Remove duplicates from excerpts
+    excerpts = [excerpt for excerpt in excerpts if excerpt not in duplicates]
+
+    return excerpts, duplicates
+
+def save_excerpts_to_session(request, excerpts):
+    request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
 
 def import_excerpts_confirm(request):
     """
@@ -351,6 +430,7 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
 
     return excerpt_instance, created
 
+#@SCAFFOLDING
 def gdocs_test(request):
     # Initialize Google Docs API
     gdocs = GDocsParser()
