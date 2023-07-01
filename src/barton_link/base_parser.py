@@ -6,14 +6,21 @@ class ParserExcerpt:
     def __init__(self,
                  content,
                  metadata = None,
-                 tags = [],
+                 tags = None,
                  indent_level = 0,
                  # is_duplicate = False
                  ):
         self.content = content
+
         self.children = []
-        self.tags = tags
+
+        if tags is None:
+            self.tags = []
+        else:
+            self.tags = tags
+
         self.metadata = metadata
+
         self.indent_level = indent_level
         # self.is_duplicate = is_duplicate
 
@@ -115,6 +122,9 @@ class BaseParser:
         # Insert excerpt into working_excerpts
         self.state['working_excerpts'][level] = excerpt
 
+        # Add heading hierarchy to excerpt tags; remove empty tags
+        excerpt.tags += [tag for tag in self.state['heading_hierarchy'] if tag]
+
         # Get parent excerpt
         parent_excerpt = None
         parent_level = level - 1
@@ -129,9 +139,6 @@ class BaseParser:
         # If parent excerpt does not exist, add excerpt to excerpts
         else:
             self.state['excerpts'].append(excerpt)
-
-        # Add heading hierarchy to excerpt tags; remove empty tags
-        excerpt.tags += [tag for tag in self.state['heading_hierarchy'] if tag]
 
         # # Add excerpt to working_excerpts stack
         # self.state['working_excerpts'].append(excerpt)

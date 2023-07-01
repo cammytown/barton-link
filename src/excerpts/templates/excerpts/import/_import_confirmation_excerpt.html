@@ -7,6 +7,12 @@
 		{% endfor %}
 	</div>
 
+	{% if excerpt.metadata %}
+	<div class="metadata">
+		{{ excerpt.metadata }}
+	</div>
+	{% endif %}
+
 	{% if excerpt.children %}
 		<ul>
 		{% for child in excerpt.children %}

@@ -261,37 +261,28 @@ class GDocsParser(BaseParser):
             #             + component_text
             #     return
 
-            # Remove empty heading levels
-            tags = [tag for tag in self.state['heading_hierarchy'] if tag]
-
-            # Add document title as tag
-            tags.append(self.state['document_title'])
-
-            # Append "dialogue" tag
-            #@TODO-5 for personal purposes
-            tags.append('dialogue')
-
-            metadata = {
-                'origin': f'gdocs >> {self.state["document_title"]}' \
-                        ' >> {}' \
-                        .format(' >> '.join(tags)),
-            }
-
             excerpt = ParserExcerpt(content=component_text,
-                                    metadata=metadata,
-                                    tags=tags,
+                                    # metadata=metadata,
+                                    # tags=,
                                     indent_level=nesting_level)
 
 
             self.add_excerpt(excerpt, nesting_level)
 
-            # # Add to working excerpts
-            # self.state['category_excerpts'].append(excerpt)
+            # Add document title as tag
+            excerpt.tags.append(self.state['document_title'])
 
-            # return excerpt
+            # Add origin metadata
+            #@TODO probably improve
+            excerpt.metadata = {
+                'origin': f'gdocs >> {self.state["document_title"]}' \
+                        ' >> {}' \
+                        .format(' >> '.join(excerpt.tags)),
+            }
 
-            # self.insert_excerpt(component_text, tags, metadata)
-            # self.build_insert_statement(excerpt)
+            # Append "dialogue" tag
+            #@TODO-5 for personal purposes
+            excerpt.tags.append('dialogue')
 
         else:
             print(f'Unknown component type: {component_type}')
