@@ -8,6 +8,8 @@ class MarkdownParser(BaseParser):
         Parse Markdown text.
         """
 
+        self.default_tags = default_tags
+
         # Reset state
         self.reset_state()
 
@@ -59,7 +61,7 @@ class MarkdownParser(BaseParser):
 
                 # Create Excerpt instance
                 excerpt_instance = ParserExcerpt(content=excerpt,
-                                                 tags=default_tags[:],
+                                                 # tags=default_tags[:],
                                                  indent_level=indent_level)
 
                 self.add_excerpt(excerpt_instance, indent_level)

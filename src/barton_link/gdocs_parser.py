@@ -98,7 +98,9 @@ class GDocsParser(BaseParser):
         # Parse document
         self.parse_document(document)
 
-    def parse_document(self, document):
+    def parse_document(self, document, default_tags=[]):
+        self.default_tags = default_tags
+
         doc_title = document.get('title')
 
         print(f'Parsing document: {doc_title}')
@@ -274,15 +276,13 @@ class GDocsParser(BaseParser):
 
             # Add origin metadata
             #@TODO probably improve
+            headers = [tag for tag in self.state['heading_hierarchy'] if tag]
+            breadcrumbs = ' > '.join(headers)
+
             excerpt.metadata = {
                 'origin': f'gdocs >> {self.state["document_title"]}' \
-                        ' >> {}' \
-                        .format(' >> '.join(excerpt.tags)),
+                        + f' >> {breadcrumbs}'
             }
-
-            # Append "dialogue" tag
-            #@TODO-5 for personal purposes
-            excerpt.tags.append('dialogue')
 
         else:
             print(f'Unknown component type: {component_type}')

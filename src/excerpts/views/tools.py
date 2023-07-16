@@ -227,7 +227,7 @@ def post_import_files(request, default_tags = []):
         # Parse file into ParserExcerpt objects
         file_content = file.read().decode("utf-8")
         parser_excerpts += mdParser.parse_text(file_content,
-                                        default_tags + filename_tags)
+                                               default_tags + filename_tags)
 
     # Check for duplicate excerpts
     excerpts, duplicates = check_for_duplicate_excerpts(parser_excerpts)
@@ -271,12 +271,12 @@ def import_gdocs(request):
 #@REVISIT architecture; move this stuff into a class? get default tags internally?
 def post_import_gdocs(request, default_tags):
     # Get Google Docs URLs textarea
-    urls = request.POST.getlist("gdocs_urls")
+    gdoc_urls = request.POST.get("gdocs_urls").split("\n")
 
     # Extract document IDs from URLs
     #@TODO move this to a function?
     doc_id_regex = r"/document/d/([a-zA-Z0-9-_]+)"
-    document_ids = [re.search(doc_id_regex, url).group(1) for url in urls]
+    document_ids = [re.search(doc_id_regex, url).group(1) for url in gdoc_urls]
 
     # Initialize Google Docs API
     gdocs = GDocsParser()
@@ -290,7 +290,7 @@ def post_import_gdocs(request, default_tags):
     for document_id in document_ids:
         # Load document
         document = gdocs.get_document(document_id)
-        parser_excerpts += gdocs.parse_document(document)
+        parser_excerpts += gdocs.parse_document(document, default_tags)
 
     # Check for duplicate excerpts
     excerpts, duplicates = check_for_duplicate_excerpts(parser_excerpts)

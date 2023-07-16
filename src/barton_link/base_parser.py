@@ -69,6 +69,7 @@ class BaseParser:
 
     def __init__(self):
         self.reset_state()
+        self.default_tags = [] #@REVISIT should this just be part of state?
 
     def close_heading(self):
         # Reverse category_excerpts and add to excerpts
@@ -121,6 +122,9 @@ class BaseParser:
 
         # Insert excerpt into working_excerpts
         self.state['working_excerpts'][level] = excerpt
+
+        # Add default tags to excerpt
+        excerpt.tags += self.default_tags
 
         # Add heading hierarchy to excerpt tags; remove empty tags
         excerpt.tags += [tag for tag in self.state['heading_hierarchy'] if tag]
