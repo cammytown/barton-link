@@ -1,0 +1,19 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Barton Link - Tools{% endblock %}
+
+{% block content_class %}tools_page{% endblock %}
+
+{% block content %}
+
+<h1>Analyze Similarities</h1>
+
+<a
+	hx-get="{% url 'start_similarity_analysis' %}"
+	hx-trigger="click"
+	hx-swap="outerHTML"
+	hx-indicator=".loading-indicator"
+>Run</a>
+
+
+{% endblock %}

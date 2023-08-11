@@ -24,11 +24,10 @@ class BartonLink:
         pass
 
     def load_nlp_models(self):
-        # Load the NLP model
-        if not self.spacy_model:
-            print("Loading NLP model...")
-            self.spacy_model = spacy.load("en_core_web_lg")
-            # self.nlp = spacy.load("en_core_web_trf")
+        # if not self.spacy_model:
+        #     print("Loading NLP model...")
+        #     self.spacy_model = spacy.load("en_core_web_lg")
+        #     # self.nlp = spacy.load("en_core_web_trf")
 
         if not self.sbert:
             # Load the SentenceTransformer model

@@ -1,0 +1,6 @@
+{% for similarity in excerpt.similar_excerpts %}
+	<div>
+		{{ similarity.sbert_similarity|floatformat:"2" }}
+		- {{ similarity.excerpt.content|linebreaksbr }}
+	</div>
+{% endfor %}

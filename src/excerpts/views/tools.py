@@ -2,6 +2,9 @@
 
 import re
 import json
+import django
+
+from threading import Thread
 
 from django.http import HttpResponse,\
         HttpResponseNotFound,\
@@ -16,24 +19,85 @@ from ..models import Excerpt,\
         ExcerptSimilarity,\
         ExcerptVersion,\
         Tag,\
-        TagType
+        TagType,\
+        Job
 
 barton_link = BartonLink()
 from barton_link.base_parser import ParserExcerpt
 from barton_link.gdocs_parser import GDocsParser
 from barton_link.markdown_parser import MarkdownParser
 
+def tools(request):
+    """
+    Tools page.
+    """
+
+    return render(request, "excerpts/tools/tools_page.html")
+
 def analyze_similarities(request):
+    return render(request, "excerpts/tools/analyze_similarities.html")
+
+#@REVISIT naming and maybe placement on these
+def start_similarity_analysis(request):
+    """
+    Start similarity analysis.
+    """
+
+    # Check for existence of similarity analysis Job in database
+    try:
+        job = Job.objects.get(name="similarity_analysis")
+    # If no Job exists, create one
+    except Job.DoesNotExist:
+        job = Job.objects.create(name="similarity_analysis")
+
+    thread = Thread(target=run_similarity_analysis)
+    thread.start()
+
+    return get_analysis_progress(request)
+
+def run_similarity_analysis():
     """
     Analyze similarities between excerpts using NLP.
     """
 
+    print("Running similarity analysis...")
+
+    # Close any old database connections
+    #@REVISIT is this necessary?
+    django.db.connections.close_all()
+
+    #@REVISIT we have chosen to individually compare each excerpt to every
+    #@ other excerpt so that progress can be easily tracked. an obvious
+    #@ improvement would be to do batches in a manner similar to what is
+    #@ outlined at https://www.sbert.net/docs/usage/semantic_textual_similarity.html
+
     barton_link.load_nlp_models() #@REVISIT architecture
 
-    created_count = 0
+    #@REVISIT redundant w/ start_similarity_analysis
+    # Check for existence of similarity analysis Job in database
+    try:
+        job = Job.objects.get(name="similarity_analysis")
 
-    # Get all excerpts, order by ascending id
-    excerpts = Excerpt.objects.order_by("id")
+    # If no Job exists, create one
+    except Job.DoesNotExist:
+        job = Job.objects.create(
+            name="similarity_analysis",
+            total=Excerpt.objects.count(),
+        )
+
+    #@SCAFFOLDING
+    # If job.total is 0, set it to the number of excerpts
+    if job.total == 0:
+        job.total = Excerpt.objects.count()
+        job.save()
+
+    similarities_stored = 0
+
+    current_progress = job.progress
+    compare_progress = job.subprogress
+
+    # Get all excerpts, order by ascending id, starting from current_progress
+    excerpts = Excerpt.objects.order_by('id')[current_progress:]
 
     # For each excerpt
     for excerpt in excerpts:
@@ -41,7 +105,7 @@ def analyze_similarities(request):
         excerpt_text = excerpt.content
 
         # For each other excerpt
-        for other_excerpt in excerpts[excerpt.id:]:
+        for other_excerpt in excerpts[compare_progress:]:
             # If other_excerpt is the same as excerpt
             #@REVISIT perhaps unnecessary with the excerpts[excerpt.id:] slice
             if other_excerpt == excerpt:
@@ -66,6 +130,12 @@ def analyze_similarities(request):
             #         other_excerpt_text
             #         )
 
+            # Update job progress every 25 excerpts
+            #@REVISIT don't do this constantly
+            if other_excerpt.id % 25 == 0:
+                job.subprogress = other_excerpt.id
+                job.save()
+
             threshold = 0.4
 
             # If similarity is below threshold
@@ -76,17 +146,18 @@ def analyze_similarities(request):
             print(f"Similarity between {excerpt.id} and {other_excerpt.id} " \
                     + f" exceeds threshold < -{threshold} or > {threshold}")
             print(f"SBERT: {sbert_similarity}")
+
             # print(f"SpaCy: {spacy_similarity}")
             print(excerpt_text)
             print("-----")
             print(other_excerpt_text)
-            print("===== (similarities added: " + str(created_count) + ")")
+            print("===== (similarities added: " + str(similarities_stored) + ")")
 
             # Check if similarity already exists
             similarity_entry = ExcerptSimilarity.objects.filter(
-                    excerpt1=excerpt,
-                    excerpt2=other_excerpt,
-                    )
+                excerpt1=excerpt,
+                excerpt2=other_excerpt,
+            ).first()
 
             if similarity_entry:
                 # Check for differing similarity values
@@ -116,9 +187,30 @@ def analyze_similarities(request):
                         )
                 similarity_entry.save()
 
-                created_count += 1
+                similarities_stored += 1
 
-    return HttpResponse(f"Created {created_count} new ExcerptSimilarity entries.")
+        # Reset compare_progress
+        #@REVISIT weird; triple check that + 1 is correct
+        compare_progress = excerpt.id + 1
+
+        # Update job progress
+        job.progress = excerpt.id
+        job.save()
+
+    return HttpResponse(f"Created {similarities_stored} new ExcerptSimilarity entries.")
+
+def get_analysis_progress(request):
+    # Check for existence of similarity analysis Job in database
+    try:
+        job = Job.objects.get(name="similarity_analysis")
+    # If no Job exists
+    except Job.DoesNotExist:
+        return HttpResponseNotFound("No similarity analysis job found.")
+
+    return render(request, "excerpts/tools/_analysis_progress.html", {
+        "job": job,
+        "percent": job.progress / job.total * 100,
+    })
 
 def import_excerpts(request):
     match request.method:

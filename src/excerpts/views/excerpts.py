@@ -85,8 +85,9 @@ def excerpt_html(request, excerpt_id):
 
     # If GET request
     if request.method == "GET":
-        context = { "excerpt": excerpt }
-        return render(request, "excerpts/excerpts/excerpt_page.html", context)
+        return render(request, "excerpts/excerpts/excerpt_page.html", {
+            "excerpt": excerpt,
+        })
 
     # If DELETE request
     elif request.method == "DELETE":

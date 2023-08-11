@@ -97,6 +97,38 @@ class Excerpt(SoftDeleteModel):
 
         return Tag.objects.exclude(excerpttag__excerpt=self)
 
+    def similar_excerpts(self):
+        """
+        Return all ExcerptSimilarity objects that include this excerpt.
+        """
+
+        # Retrieve all ExcerptSimilarity objects that include this excerpt
+        similarity_objects = ExcerptSimilarity.objects.filter(excerpt1=self) \
+            | ExcerptSimilarity.objects.filter(excerpt2=self)
+
+        # Order by similarity
+        similarity_objects = similarity_objects.order_by('-sbert_similarity')
+
+        similarities = []
+
+        # For each matching similarity
+        for similarity in similarity_objects:
+            excerpt = None
+
+            # Add the other excerpt to the list
+            if similarity.excerpt1 == self:
+                excerpt = similarity.excerpt2
+            else:
+                excerpt = similarity.excerpt1
+
+            similarities.append({
+                'excerpt': excerpt,
+                'sbert_similarity': similarity.sbert_similarity,
+                # 'spacy_similarity': similarity.spacy_similarity
+            })
+
+        return similarities
+
     def save(self, *args, **kwargs):
         super(Excerpt, self).save(*args, **kwargs)
 
@@ -125,7 +157,22 @@ class ExcerptSimilarity(models.Model):
     def __str__(self):
         return f"{self.excerpt1} - {self.excerpt2}: {self.similarity}"
 
+class Job(models.Model):
+    name = models.TextField()
+    description = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    progress = models.IntegerField(default=0)
+    subprogress = models.IntegerField(default=0)
+    total = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
 # class BartonConfig:
 #     id = models.IntegerField(primary_key=True)
 #     name = models.TextField()
 #     value = models.TextField()
+
+

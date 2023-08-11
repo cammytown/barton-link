@@ -23,9 +23,13 @@
 {% comment %}<h3>Metadata</h3>{% endcomment %}
 {% comment %}<p>{{ excerpt.metadata }}</p>{% endcomment %}
 
+<h3>Similar Excerpts</h3>
+{% include "excerpts/excerpts/_excerpt_similar.html" %}
+
 <h3>Controls</h3>
 <div class="controls">
 	<a class="edit" href="/excerpts/excerpt/{{ excerpt.id }}/edit">Edit</a>
+
 	<a
 		class="delete"
 		{% comment %}hx-delete="/excerpts/excerpt/{{ excerpt.id }}"            {% endcomment %}

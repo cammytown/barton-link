@@ -1,0 +1,13 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Barton Link - Tools{% endblock %}
+
+{% block content_class %}tools_page{% endblock %}
+
+{% block content %}
+
+<h1>Tools</h1>
+
+<a href="{% url 'analyze_similarities' %}">Analyze Similarities</a>
+
+{% endblock %}
