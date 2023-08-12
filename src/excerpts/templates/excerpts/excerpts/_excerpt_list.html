@@ -3,7 +3,7 @@
 	of {{ page_obj.paginator.count }}.
 </p>
 
-<p>
+<div class="controls">
 	{% if prev_page_url %}
 		<a href="{{ prev_page_url }}">Previous</a>
 	{% else %}
@@ -15,7 +15,7 @@
 	{% else %}
 		<span class="disabled">Next</span>
 	{% endif %}
-</p>
+</div>
 
 <!--<p><a href="/excerpts/excerpt/new/">New Excerpt</a></p>-->
 

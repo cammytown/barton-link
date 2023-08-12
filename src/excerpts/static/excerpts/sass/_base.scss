@@ -1,0 +1,28 @@
+body {
+	background: rgb(20, 20, 20);
+	color: rgb(205, 205, 205);
+}
+
+#content {
+	width: 900px;
+	margin: 0 auto;
+	padding: 10px 30px;
+	background: rgb(10, 10, 10);
+
+	header {
+		display: flex;
+
+		h1, h2, h3, h4, h5, h6 {
+			margin: 0;
+		}
+
+		.control {
+			display: none;
+			margin-left: 10px;
+		}
+
+		&:hover .control {
+			display: block;
+		}
+	}
+}

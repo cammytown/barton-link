@@ -1,0 +1,35 @@
+@mixin disabled {
+	color: rgb(105, 105, 105);
+	background: rgba(105, 105, 105, 0.1);
+
+	&:hover {
+		color: rgb(155, 155, 155);
+		background: rgba(105, 105, 105, 0.2);
+	}
+}
+
+.disabled {
+	@include disabled;
+}
+
+.deleted {
+	background: rgb(50, 10, 10);
+	color: rgb(220, 120, 120);
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+.autotag {
+	color: rgb(155, 205, 205);
+	background: rgba(105, 205, 205, 0.1);
+
+	&:hover {
+		color: rgb(105, 255, 255);
+		background: rgba(105, 205, 205, 0.2);
+	}
+}
+
+.metadata {
+	color: rgb(105, 105, 105);
+	font-size: 0.7em;
+}

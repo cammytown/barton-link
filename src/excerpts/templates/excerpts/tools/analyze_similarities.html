@@ -8,11 +8,13 @@
 
 <h1>Analyze Similarities</h1>
 
-<a
-	hx-get="{% url 'start_similarity_analysis' %}"
-	hx-trigger="click"
-	hx-swap="outerHTML"
-	hx-indicator=".loading-indicator"
->Run</a>
+<div class="controls">
+	<a
+		hx-get="{% url 'start_similarity_analysis' %}"
+		hx-trigger="click"
+		hx-swap="outerHTML"
+		hx-indicator=".loading-indicator"
+	>Run</a>
+</div>
 
 {% endblock %}
