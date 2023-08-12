@@ -33,5 +33,7 @@ Development (requires SASS)
 ```
 
 # Features
-- Tag excerpts
-- 
+- Tag excerpts.
+- NLP (Natural Language Processing)
+    - Determine semantic similarity between excerpts.
+    - Automatically tag excerpts.

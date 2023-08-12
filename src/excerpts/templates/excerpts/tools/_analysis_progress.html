@@ -1,8 +1,10 @@
 <div
+	id="analysis-progress"
 	hx-get="{% url 'get_analysis_progress' %}"
 	hx-trigger="every 1500ms"
 	hx-target="this"
-	hx-swap="innerHTML">
+	hx-swap="innerHTML"
+>
 
 	<p>
 		Current Excerpt: {{ job.progress }}
@@ -23,4 +25,13 @@
 	<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="pblabel">
 		<div id="pb" class="progress-bar" style="width: {{ percent }}%" role="progressbar" />
 	</div>
+
+	<p>
+		<a
+			hx-get="{% url 'stop_similarity_analysis' %}"
+			hx-trigger="click"
+			hx-swap="outerHTML"
+			hx-target="#analysis-progress"
+		>Stop (resumable any time)</a>
+	</p>
 </div>
