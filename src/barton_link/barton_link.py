@@ -1,116 +1,95 @@
 from typing import Optional
-
-import spacy
+# import spacy
 from sentence_transformers import SentenceTransformer, util
-
-# from .database import Database
 from .gdocs_parser import GDocsParser
 
-class BartonLink:
-    # db: Database
-    gdocs: Optional[GDocsParser] = None
-    spacy_model: Optional[spacy.Language] = None
-    sbert: Optional[SentenceTransformer] = None
+gdocs: Optional[GDocsParser] = None
+# spacy_model: Optional[spacy.Language] = None
+sbert: Optional[SentenceTransformer] = None
 
-    def __init__(self):
-        # Initialize the database
-        # self.db = Database()
-        # self.db.connect_to_database()
+# def load_spacy(self):
+#     if not self.spacy_model:
+#         print("Loading NLP model...")
+#         self.spacy_model = spacy.load("en_core_web_lg")
+#         # self.nlp = spacy.load("en_core_web_trf")
 
-        # self.db.test_database()
-        # self.db.close_database()
-
-        # self.load_nlp_models()
-        pass
-
-    def load_nlp_models(self):
-        # if not self.spacy_model:
-        #     print("Loading NLP model...")
-        #     self.spacy_model = spacy.load("en_core_web_lg")
-        #     # self.nlp = spacy.load("en_core_web_trf")
-
-        if not self.sbert:
+def load_sbert():
+    global sbert
+    if not sbert:
+        try:
             # Load the SentenceTransformer model
             print("Loading SentenceTransformer model...")
             # self.sbert = SentenceTransformer("all-mpnet-base-v2")
-            self.sbert = SentenceTransformer("all-MiniLM-L6-v2")
+            sbert = SentenceTransformer("all-MiniLM-L6-v2")
 
-    def measure_excerpt_similarity(self, excerpt1, excerpt2, engine="sbert"):
-        """
-        Measure the similarity between two excerpts.
-        """
+        except Exception as e:
+            #@REVISIT
+            print(e)
+            print("Failed to load SentenceTransformer model.")
+            return
 
-        if engine == "sbert":
-            return self.measure_excerpt_similarity_sbert(excerpt1, excerpt2)
+def measure_excerpt_similarity(excerpt1, excerpt2, engine="sbert"):
+    """
+    Measure the similarity between two excerpts.
+    """
 
-        elif engine == "spacy":
-            return self.measure_excerpt_similarity_spacy(excerpt1, excerpt2)
+    if engine == "sbert":
+        return measure_excerpt_similarity_sbert(excerpt1, excerpt2)
 
-        else:
-            raise ValueError("Invalid engine.")
+    elif engine == "spacy":
+        return measure_excerpt_similarity_spacy(excerpt1, excerpt2)
 
-    def measure_excerpt_similarity_spacy(self, excerpt1, excerpt2):
-        # Process the text
-        assert self.spacy_model is not None
+    else:
+        raise ValueError("Invalid engine.")
 
-        doc1 = self.spacy_model(excerpt1)
-        doc2 = self.spacy_model(excerpt2)
+# def measure_excerpt_similarity_spacy(excerpt1, excerpt2):
+#     # Process the text
+#     assert spacy_model is not None
 
-        # Measure the similarity
-        similarity = doc1.similarity(doc2)
+#     doc1 = spacy_model(excerpt1)
+#     doc2 = spacy_model(excerpt2)
 
-        # Return the similarity
-        return similarity
+#     # Measure the similarity
+#     similarity = doc1.similarity(doc2)
 
-    def measure_excerpt_similarity_sbert(self, excerpt1, excerpt2):
-        # Use SentenceTransformer to measure similarity
-        assert self.sbert is not None
+#     # Return the similarity
+#     return similarity
 
-        # Compute embeddings
-        embeddings1 = self.sbert.encode(excerpt1)
-        embeddings2 = self.sbert.encode(excerpt2)
+def measure_excerpt_similarity_sbert(excerpt1, excerpt2):
+    if not sbert:
+        load_sbert()
 
-        # Compute cosine-similarities
-        #@TODO move to GPU when possible and desired
-        cosine_scores = util.cos_sim(embeddings1, embeddings2)
-        
-        return cosine_scores[0][0]
+    # Compute embeddings
+    embeddings1 = sbert.encode(excerpt1)
+    embeddings2 = sbert.encode(excerpt2)
 
-    def compare_lists_sbert(self, a, b): #@REVISIT naming
-        # Use SentenceTransformer to measure similarity
-        assert self.sbert is not None
+    # Compute cosine-similarities
+    #@TODO move to GPU when possible and desired
+    cosine_scores = util.cos_sim(embeddings1, embeddings2)
+    
+    return cosine_scores[0][0]
 
-        # Compute embeddings
-        embeddings1 = self.sbert.encode(a, convert_to_tensor=True)
-        embeddings2 = self.sbert.encode(b, convert_to_tensor=True)
+def compare_lists_sbert(a, b): #@REVISIT naming
+    if not sbert:
+        load_sbert()
 
-        # Compute cosine-similarities
-        #@TODO move to GPU when possible and desired
-        cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
+    # Compute embeddings
+    embeddings1 = sbert.encode(a, convert_to_tensor=True)
+    embeddings2 = sbert.encode(b, convert_to_tensor=True)
 
-        return cosine_scores
+    # Compute cosine-similarities
+    #@TODO move to GPU when possible and desired
+    cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
 
-    def load_google_doc(self, document_id):
-        if not self.gdocs:
-            # Initialize Google Docs API
-            self.gdocs = GDocsParser()
+    return cosine_scores
 
-            # Load credentials
-            self.gdocs.load_credentials()
+def load_google_doc(document_id):
+    if not gdocs:
+        # Initialize Google Docs API
+        gdocs = GDocsParser()
 
-        # Load document
-        document = self.gdocs.get_document(document_id)
+        # Load credentials
+        gdocs.load_credentials()
 
-        # # Parse document
-        # insert_statement = self.gdocs.parse_document_into_insert_statement(document)
-        
-        # # Insert document into database
-        # self.db.c.execute(insert_statement)
-        # rowcount = self.db.c.rowcount
-        # self.db.conn.commit() #@REVISIT
-
-        # # Print rowcount
-        # print(f"Inserted {rowcount} rows into database.")
-
-if __name__ == '__main__':
-    barton_link = BartonLink()
+    # Load document
+    document = gdocs.get_document(document_id)

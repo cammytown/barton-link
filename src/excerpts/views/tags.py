@@ -2,6 +2,8 @@ from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 from django.core.paginator import Paginator
 
+from barton_link import barton_link
+
 from ..models import Excerpt, Tag, TagType
 
 def tags(request):
@@ -308,9 +310,7 @@ def add_split_field(request, tag_id):
         return HttpResponse(status=405)
 
 def autotag_excerpts(request, excerpt_id=None):
-    barton_link.load_nlp_models() #@REVISIT architecture
-
-    # Get excerpts
+    # If url is /autotag/<excerpt_id>
     if excerpt_id:
         # Get excerpt with id
         excerpts = Excerpt.objects.filter(id=excerpt_id)
@@ -319,6 +319,8 @@ def autotag_excerpts(request, excerpt_id=None):
         if len(excerpts) == 0:
             # Return 404
             return HttpResponseNotFound()
+
+    # If url is simply /autotag
     else:
         # Get all excerpts, order by ascending id
         excerpts = Excerpt.objects.order_by("id")[:100]
@@ -327,16 +329,13 @@ def autotag_excerpts(request, excerpt_id=None):
     # Build list of excerpt texts
     excerpt_texts = [excerpt.content for excerpt in excerpts]
 
-    # Get tags
+    # Get all existing tags
     tags = Tag.objects.all()
-
-    # Build list of tag names
     tag_names = [tag.name for tag in tags]
 
-    # Compare excerpts to tags
+    # Semantically compare excerpts to tags
     print(f"Comparing {len(excerpts)} excerpts to {len(tags)} tags...")
     scores = barton_link.compare_lists_sbert(excerpt_texts, tag_names)
-
 
     autotag_objs = []
     for i, excerpt in enumerate(excerpts):

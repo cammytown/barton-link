@@ -5,8 +5,7 @@ from ..models import Excerpt,\
         ExcerptSimilarity,\
         Job
 
-from barton_link.barton_link import BartonLink
-barton_link = BartonLink()
+from barton_link import barton_link
 
 class SimilarityAnalysisService:
     running = False
@@ -42,8 +41,6 @@ class SimilarityAnalysisService:
         #@ other excerpt so that progress can be easily tracked. an obvious
         #@ improvement would be to do batches in a manner similar to what is
         #@ outlined at https://www.sbert.net/docs/usage/semantic_textual_similarity.html
-
-        barton_link.load_nlp_models() #@REVISIT architecture
 
         #@REVISIT redundant w/ start_similarity_analysis
         # Check for existence of similarity analysis Job in database
@@ -96,9 +93,9 @@ class SimilarityAnalysisService:
 
                 # Measure similarities
                 sbert_similarity = barton_link.measure_excerpt_similarity_sbert(
-                        excerpt_text,
-                        other_excerpt_text
-                        )
+                    excerpt_text,
+                    other_excerpt_text
+                )
 
                 # spacy_similarity = barton_link.measure_excerpt_similarity_spacy(
                 #         excerpt_text,
