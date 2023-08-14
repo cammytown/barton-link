@@ -9,12 +9,16 @@
 <h1>Analyze Similarities</h1>
 
 <div class="controls">
+	{% if running %}
+	{% include "excerpts/tools/_analysis_progress.html" %}
+	{% else %}
 	<a
 		hx-get="{% url 'start_similarity_analysis' %}"
 		hx-trigger="click"
 		hx-swap="outerHTML"
-		hx-indicator=".loading-indicator"
+		{% comment %}hx-indicator=".loading-indicator"{% endcomment %}
 	>Run</a>
+	{% endif %}
 </div>
 
 {% endblock %}

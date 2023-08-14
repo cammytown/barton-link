@@ -174,6 +174,28 @@ class SimilarityAnalysisService:
 
         return HttpResponse(f"Created {similarities_stored} new ExcerptSimilarity entries.")
 
+    def get_status(self):
+        """
+        Get similarity analysis status.
+        """
+
+        # Check for existence of similarity analysis Job in database
+        try:
+            job = Job.objects.get(name="similarity_analysis")
+        # If no Job exists
+        except Job.DoesNotExist:
+            job = None
+            # return HttpResponseNotFound("No similarity analysis job found.")
+
+        return {
+            "running": self.running,
+            "job": job if job else None,
+            "progress": job.progress if job else None,
+            "subprogress": job.subprogress if job else None,
+            "total": job.total if job else None,
+            "percent": round(job.progress / job.total * 100, 2) if job else None,
+        }
+
     def stop(self):
         """
         Stop similarity analysis.

@@ -33,7 +33,13 @@ def tools(request):
     return render(request, "excerpts/tools/tools_page.html")
 
 def analyze_similarities(request):
-    return render(request, "excerpts/tools/analyze_similarities.html")
+    """
+    Index page for excerpt similarity analysis.
+    """
+
+    status = similarity_analysis.get_status()
+
+    return render(request, "excerpts/tools/analyze_similarities.html", status)
 
 #@REVISIT naming and maybe placement on these
 def start_similarity_analysis(request):
@@ -55,17 +61,13 @@ def stop_similarity_analysis(request):
     return HttpResponse("Similarity analysis stopped.")
 
 def get_analysis_progress(request):
-    # Check for existence of similarity analysis Job in database
-    try:
-        job = Job.objects.get(name="similarity_analysis")
-    # If no Job exists
-    except Job.DoesNotExist:
-        return HttpResponseNotFound("No similarity analysis job found.")
+    """
+    Get similarity analysis progress.
+    """
 
-    return render(request, "excerpts/tools/_analysis_progress.html", {
-        "job": job,
-        "percent": job.progress / job.total * 100,
-    })
+    status = similarity_analysis.get_status()
+
+    return render(request, "excerpts/tools/_analysis_progress.html", status)
 
 def import_excerpts(request):
     match request.method:

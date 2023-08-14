@@ -1,5 +1,6 @@
 $hueRotateSpeed: 500s;
 
+//@TODO probably turn this redundant code into a mixin if they support params
 @keyframes header-hue-rotate {
 	0% { background-color: hsl(270, 35%, 7%); }
 	25% { background-color: hsl(0, 35%, 7%); }
@@ -23,6 +24,14 @@ $textBrightness: 90%;
 	50% { color: hsl(90, 46.8%, $textBrightness); }
 	75% { color: hsl(180, 46.8%, $textBrightness); }
 	100% { color: hsl(270, 46.8%, $textBrightness); }
+}
+
+@keyframes hue-rotate {
+	0% { background: hsl(270, 70%, 82%); }
+	25% { background: hsl(0, 70%, 82%); }
+	50% { background: hsl(90, 70%, 82%); }
+	75% { background: hsl(180, 70%, 82%); }
+	100% { background: hsl(270, 70%, 82%); }
 }
 
 @mixin disabled {

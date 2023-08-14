@@ -10,3 +10,16 @@
 		line-height: 1.5em;
 	}
 }
+
+.progress-bar {
+	background: rgb(25, 25, 25);
+	height: 20px;
+	width: 100%;
+
+	.bar {
+		background: rgb(105, 105, 105);
+		animation: hue-rotate $hueRotateSpeed linear infinite;
+		height: 20px;
+		width: 100%;
+	}
+}
