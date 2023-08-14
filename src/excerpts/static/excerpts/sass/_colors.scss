@@ -1,3 +1,30 @@
+$hueRotateSpeed: 500s;
+
+@keyframes header-hue-rotate {
+	0% { background-color: hsl(270, 35%, 7%); }
+	25% { background-color: hsl(0, 35%, 7%); }
+	50% { background-color: hsl(90, 35%, 7%); }
+	75% { background-color: hsl(180, 35%, 7%); }
+	100% { background-color: hsl(270, 35%, 7%); }
+}
+
+@keyframes body-hue-rotate {
+	0% { background-color: hsl(270, 23.8%, 4.1%); }
+	25% { background-color: hsl(0, 23.8%, 4.1%); }
+	50% { background-color: hsl(90, 23.8%, 4.1%); }
+	75% { background-color: hsl(180, 23.8%, 4.1%); }
+	100% { background-color: hsl(270, 23.8%, 4.1%); }
+}
+
+$textBrightness: 90%;
+@keyframes text-hue-rotate {
+	0% { color: hsl(270, 46.8%, $textBrightness); }
+	25% { color: hsl(0, 46.8%, $textBrightness); }
+	50% { color: hsl(90, 46.8%, $textBrightness); }
+	75% { color: hsl(180, 46.8%, $textBrightness); }
+	100% { color: hsl(270, 46.8%, $textBrightness); }
+}
+
 @mixin disabled {
 	color: rgb(105, 105, 105);
 	background: rgba(105, 105, 105, 0.1);

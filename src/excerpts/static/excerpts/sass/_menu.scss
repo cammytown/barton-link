@@ -1,11 +1,3 @@
-@keyframes hue-rotate {
-	0% { background-color: hsl(270, 35%, 7%); }
-	25% { background-color: hsl(360, 35%, 7%); }
-	50% { background-color: hsl(0, 35%, 7%); }
-	75% { background-color: hsl(90, 35%, 7%); }
-	100% { background-color: hsl(180, 35%, 7%); }
-}
-
 nav#main-menu {
 	display: flex;
 	justify-content: space-between;
@@ -13,7 +5,7 @@ nav#main-menu {
 	width: 900px;
 	margin: 0 auto;
 	background: hsl(70, 35%, 7%);
-	animation: hue-rotate 900s linear infinite;
+	animation: header-hue-rotate $hueRotateSpeed linear infinite;
 	padding: 10px 30px;
 
 	ul {

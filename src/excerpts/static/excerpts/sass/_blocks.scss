@@ -33,24 +33,46 @@
 			.block-control {
 				display: block;
 				width: 50%;
+				min-width: 20px;
 				height: 100%;
 				text-align: center;
+				text-decoration: none;
 				cursor: pointer;
+				//opacity: 0.5;
 
 				&.green {
-					background: rgba(105, 155, 105, 0.5);
-					color: rgb(105, 205, 105);
+					background: rgba(25, 95, 25, 0.9);
+					color: rgb(135, 235, 135);
+
+					&:hover {
+						background: rgba(95, 155, 95, 1);
+						color: rgb(25, 75, 25);
+					}
 				}
 
 				&.red {
-					background: rgba(155, 105, 105, 0.5);
-					color: rgb(205, 105, 105);
+					background: rgba(95, 25, 25, 0.9);
+					color: rgb(235, 135, 135);
+
+					&:hover {
+						background: rgba(155, 95, 95, 1);
+						color: rgb(75, 25, 25);
+					}
 				}
 
 				&.blue {
-					background: rgba(105, 105, 155, 0.5);
-					color: rgb(105, 105, 205);
+					background: rgba(25, 25, 95, 0.9);
+					color: rgb(135, 135, 235);
+
+					&:hover {
+						background: rgba(95, 95, 155, 1);
+						color: rgb(25, 25, 75);
+					}
 				}
+
+				//&:hover {
+				//    opacity: 1;
+				//}
 			}
 		}
 
