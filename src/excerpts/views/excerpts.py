@@ -27,8 +27,8 @@ def search(request):
 
     # Search for excerpts without parents
     excerpts = Excerpt.objects.filter(
-            content__icontains=search, parent=None
-            ).order_by("-id")
+        content__icontains=search, parent=None
+    ).order_by("-id")
 
     # excerpts = Excerpt.objects.order_by("-id")
 
@@ -62,7 +62,7 @@ def search(request):
         "page_sizes": [10, 25, 50, 100],
         "page_size": page_size,
         "search": search,
-        }
+    }
 
     # If HTMX request
     if request.headers.get("HX-Request") == "true":
@@ -154,7 +154,7 @@ def add_autotag(request, excerpt_id, tag_id):
                   "excerpts/excerpts/_excerpt_tags.html",
                   {
                       "excerpt": excerpt,
-                      "show_unused_tags": False
+                      "show_unused": False
                   })
 
 def remove_tag(request, excerpt_id, tag_id):
@@ -163,6 +163,8 @@ def remove_tag(request, excerpt_id, tag_id):
 
     excerpt.tags.remove(tag)
 
+    show_unused = request.POST.get("show_unused") == "true"
+
     return render(request,
                   "excerpts/excerpts/_excerpt_tags.html",
-                  { "excerpt": excerpt })
+                  { "excerpt": excerpt, "show_unused": show_unused })

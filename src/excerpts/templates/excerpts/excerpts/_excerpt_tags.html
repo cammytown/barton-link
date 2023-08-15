@@ -1,29 +1,19 @@
 <div class="excerpt-tags" hx-target="this" hx-swap="outerHTML">
 	{% with tags=excerpt.tags.all %}
-		{% include "excerpts/tags/_tag_list.html" with show_unused_tags=False %}
+		{% include "excerpts/tags/_tag_list.html" with show_unused=False %}
 	{% endwith %}
 
-	{% if show_unused_tags != False %}
+	{% if show_unused != False %}
 	<div class="blocks tags unused-tags">
 		{% for tag in excerpt.unused_tags %}
-		<div class="block tag inactive">
-			<div class="block-controls">
-				<a
-					hx-post="/excerpts/excerpt/{{ excerpt.id }}/add_tag/{{ tag.id }}"
-					hx-trigger="click"
-					class="block-control green"
-				>
-					+
-				</a>
-
-				<a href="/excerpts/tags/{{ tag.id }}" class="block-control tag-link blue">
-					i
-				</a>
-			</div>
-
-			{{ tag.name }}
-		</div>
+			{% include "excerpts/tags/_inactive_tag.html" %}
 		{% endfor %}
 	</div>
 	{% endif %}
+
+	<div class="blocks tags autotags">
+		{% for autotag in excerpt.autotags.all %}
+			{% include "excerpts/tags/_autotag.html" %}
+		{% endfor %}
+	</div>
 </div>

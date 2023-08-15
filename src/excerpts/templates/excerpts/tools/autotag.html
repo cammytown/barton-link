@@ -1,0 +1,26 @@
+{% extends "excerpts/base.html" %}
+
+{% block title %}Barton Link - Autotag Excerpts{% endblock %}
+
+{% block content_class %}tools_page{% endblock %}
+
+{% block content %}
+
+<h1>Autotag Excerpts</h1>
+
+<div class="controls">
+	{% if status.running %}
+		{% include "excerpts/tools/_autotag_progress.html" %}
+	{% else %}
+		<a
+			hx-get="{% url 'start_autotag' %}"
+			hx-trigger="click"
+			hx-swap="outerHTML"
+			{% comment %}hx-indicator=".loading-indicator"{% endcomment %}
+		>Run</a>
+	{% endif %}
+</div>
+
+{% include "excerpts/tools/_autotag_confirmation.html" %}
+
+{% endblock %}

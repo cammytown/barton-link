@@ -140,7 +140,9 @@ class Excerpt(SoftDeleteModel):
         return self.content
 
 class ExcerptVersion(models.Model):
-    excerpt = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='versions')
+    excerpt = models.ForeignKey(Excerpt,
+                                on_delete=models.CASCADE,
+                                related_name='versions')
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
 
@@ -148,14 +150,28 @@ class ExcerptVersion(models.Model):
         return f"{self.excerpt} - {self.created}"
 
 class ExcerptSimilarity(models.Model):
-    excerpt1 = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='excerpt1')
-    excerpt2 = models.ForeignKey(Excerpt, on_delete=models.CASCADE, related_name='excerpt2')
+    excerpt1 = models.ForeignKey(Excerpt,
+                                 on_delete=models.CASCADE,
+                                 related_name='excerpt1')
+    excerpt2 = models.ForeignKey(Excerpt,
+                                 on_delete=models.CASCADE,
+                                 related_name='excerpt2')
 
     sbert_similarity = models.FloatField()
     # spacy_similarity = models.FloatField()
 
     def __str__(self):
-        return f"{self.excerpt1} - {self.excerpt2}: {self.similarity}"
+        return f"{self.excerpt1} - {self.excerpt2}: {self.sbert_similarity}"
+
+class ExcerptAutoTag(models.Model):
+    excerpt = models.ForeignKey(Excerpt,
+                                on_delete=models.CASCADE,
+                                related_name='autotags')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    sbert_similarity = models.FloatField()
+
+    def __str__(self):
+        return f"{self.excerpt} - {self.tag}: {self.sbert_similarity}"
 
 class Job(models.Model):
     name = models.TextField()

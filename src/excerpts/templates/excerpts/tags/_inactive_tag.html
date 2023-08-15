@@ -1,0 +1,17 @@
+<div class="block tag inactive">
+	<div class="block-controls">
+		<a
+			hx-post="/excerpts/excerpt/{{ excerpt.id }}/add_tag/{{ tag.id }}"
+			hx-trigger="click"
+			class="block-control green"
+		>
+			+
+		</a>
+
+		<a href="/excerpts/tags/{{ tag.id }}" class="block-control tag-link blue">
+			i
+		</a>
+	</div>
+
+	{{ tag.name }}
+</div>

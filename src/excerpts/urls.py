@@ -35,8 +35,15 @@ urlpatterns = [
          name="edit_tag_type"),
 
     path("tools", views.tools, name="tools"),
-    path("autotag/", views.autotag_excerpts, name="autotag"),
-    path("autotag/<int:excerpt_id>", views.autotag_excerpts, name="autotag"),
+
+    path("autotag", views.autotag_excerpts, name="autotag"),
+
+    # path("autotag/<int:excerpt_id>", views.autotag_excerpts, name="autotag"),
+    path("start-autotag", views.start_autotag, name="start_autotag"),
+    path("stop-autotag", views.stop_autotag, name="stop_autotag"),
+    path("get-autotag-progress",
+            views.get_autotag_progress,
+            name="get_autotag_progress"),
 
     path("analyze-similarities",
          views.analyze_similarities,

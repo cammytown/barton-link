@@ -1,9 +1,7 @@
 <li class="excerpt-list-single">
-	<a class="excerpt" href="/excerpts/excerpt/{{ excerpt.id }}">
-		{{ excerpt.content|linebreaksbr }}
-	</a>
+	{% include "excerpts/excerpts/_excerpt_link.html" %}
 
-	{% include "excerpts/excerpts/_excerpt_tags.html" with show_unused_tags=False %}
+	{% include "excerpts/excerpts/_excerpt_tags.html" with show_unused=False %}
 
 	{% if excerpt.children %}
 		<ul>

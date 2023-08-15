@@ -1,36 +1,14 @@
-{% extends "excerpts/base.html" %}
+<h2>Confirm Auto-Tagging</h2>
 
-{% block title %}Confirm Auto-Tagging{% endblock %}
+{% include "excerpts/excerpts/_excerpt_list.html" %}
 
-{% block content %}
-	<h1>Confirm Auto-Tagging</h1>
+{% comment %}{% for excerpt in excerpts %}                                                  {% endcomment %}
+{% comment %}<div id="autotags-{{ excerpt.id }}" class="block">                             {% endcomment %}
+{% comment %}    <p>                                                                        {% endcomment %}
+{% comment %}        {% include "excerpts/excerpts/_excerpt_link.html" %}                   {% endcomment %}
+{% comment %}    </p>                                                                       {% endcomment %}
 
-	{% for autotag_obj in autotag_objs %}
-	<div hx-target=".excerpt-tags" hx-swap="outerHTML">
-		<p>
-			{% include "excerpts/excerpts/_excerpt_list_single.html" with excerpt=autotag_obj.content %}
-		</p>
+{% comment %}    {% include "excerpts/excerpts/_excerpt_tags.html" with show_unused=False %}{% endcomment %}
+{% comment %}</div>                                                                         {% endcomment %}
+{% comment %}{% endfor %}                                                                   {% endcomment %}
 
-		<div class="blocks tags">
-			<strong>Autotags:</strong>
-
-			{% for tag_obj in autotag_obj.tag_scores %}
-				<a
-					hx-post="/excerpts/excerpt/{{ autotag_obj.excerpt.id }}/add_autotag/{{ tag_obj.tag.id }}"
-					hx-trigger="click"
-					class="block tag autotag"
-					{% comment %}href="/excerpts/tags/{{ tag_obj.tag.id }}/"{% endcomment %}
-				>
-					{{ tag_obj.tag.name }}
-					({{ tag_obj.score|floatformat:"2" }})
-				</a>
-			{% endfor %}
-		</div>
-	</div>
-	{% endfor %}
-
-	<p>
-		<a href="/excerpts/autotag/">Cancel</a>
-		<a href="/excerpts/autotag/confirm/">Confirm</a>
-	</p>
-{% endblock %}

@@ -1,10 +1,17 @@
 from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from django.urls import reverse
 
 from barton_link import barton_link
 
-from ..models import Excerpt, Tag, TagType
+from ..models import Excerpt,\
+        Tag,\
+        TagType,\
+        ExcerptAutoTag\
+
+from ..services import AutotagService
+autotag = AutotagService()
 
 def tags(request):
     # If HTMX request
@@ -309,63 +316,78 @@ def add_split_field(request, tag_id):
     else:
         return HttpResponse(status=405)
 
-def autotag_excerpts(request, excerpt_id=None):
-    # If url is /autotag/<excerpt_id>
-    if excerpt_id:
-        # Get excerpt with id
-        excerpts = Excerpt.objects.filter(id=excerpt_id)
+def autotag_excerpts(request):
+    """
+    Autotag excerpts.
 
-        # If no excerpt with id
-        if len(excerpts) == 0:
-            # Return 404
-            return HttpResponseNotFound()
+    Present user with confirmation page before proceeding.
+    """
 
-    # If url is simply /autotag
-    else:
-        # Get all excerpts, order by ascending id
-        excerpts = Excerpt.objects.order_by("id")[:100]
-        # excerpts = Excerpt.objects.order_by("id")
+    page_num = request.GET.get("page", 1)
+    # page_size = request.GET.get("page_size", 50)
 
-    # Build list of excerpt texts
-    excerpt_texts = [excerpt.content for excerpt in excerpts]
+    # Get autotag service status
+    status = autotag.get_status()
 
-    # Get all existing tags
-    tags = Tag.objects.all()
-    tag_names = [tag.name for tag in tags]
+    # Get 10 excerpts with autotags starting at page
+    excerpts = Excerpt.objects.filter(autotags__isnull=False).distinct()
 
-    # Semantically compare excerpts to tags
-    print(f"Comparing {len(excerpts)} excerpts to {len(tags)} tags...")
-    scores = barton_link.compare_lists_sbert(excerpt_texts, tag_names)
+    # Paginate excerpts
+    #@REVISIT make cleaner
+    paginator = Paginator(excerpts, 10)
+    page_obj = paginator.get_page(page_num)
 
-    autotag_objs = []
-    for i, excerpt in enumerate(excerpts):
-        autotag_obj = {
-            "excerpt": excerpt,
-            "tag_scores": [],
-        }
+    # try:
+    #     excerpts = paginator.page(page_num)
+    # except PageNotAnInteger:
+    #     excerpts = paginator.page(1)
+    # except EmptyPage:
+    #     excerpts = paginator.page(paginator.num_pages)
 
-        for j, tag in enumerate(tags):
-            # If tag is already on excerpt
-            if tag in excerpt.tags.all():
-                continue
+    #@TODO redundant w/ excerpts search view
+    prev_page_url = None
+    next_page_url = None
 
-            # If score is greater than threshold
-            if scores[i][j] >= 0.5:
-                autotag_obj["tag_scores"].append({
-                    "tag": tag,
-                    "score": scores[i][j],
-                })
+    if page_obj.has_previous():
+        prev_page_url = reverse("autotag") + \
+                f"?page={page_obj.previous_page_number()}"
 
-        if len(autotag_obj["tag_scores"]) > 0:
-            autotag_objs.append(autotag_obj)
+        # if search:
+        #     prev_page_url += f"&search={search}"
 
-    print(f"Found {len(autotag_objs)} excerpts to autotag.")
-    print(autotag_objs)
+    if page_obj.has_next():
+        next_page_url = reverse("autotag") + \
+                f"?page={page_obj.next_page_number()}"
+
+        # if search:
+        #     next_page_url += f"&search={search}"
+
     context = {
-        "autotag_objs": autotag_objs,
+        "status": status,
+        "page_obj": page_obj,
+        "prev_page_url": prev_page_url,
+        "next_page_url": next_page_url,
     }
 
-    return render(request, "excerpts/autotag_confirmation.html", context)
+    return render(request, "excerpts/tools/autotag.html", context)
+    # return render(request, "excerpts/autotag_confirmation.html", context)
+
+def start_autotag(request):
+    autotag.start()
+
+    return get_autotag_progress(request)
+
+def stop_autotag(request):
+    autotag.stop()
+
+    return HttpResponse("Autotag stopped.")
+
+def get_autotag_progress(request):
+    status = autotag.get_status()
+
+    return render(request,
+                  "excerpts/tools/_autotag_progress.html",
+                  { "status": status })
 
 # def autotag_excerpts(request, excerpt_id=None):
 #     """
@@ -445,6 +467,5 @@ def autotag_excerpts(request, excerpt_id=None):
 #                 "tag": tag,
 #                 "similarity": similarity,
 #             })
-
 #     return excerpt_autotag_objs
 

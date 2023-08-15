@@ -21,16 +21,7 @@
 	<p>
 		<label id="pblabel">Progress</label>: {{ percent }}%
 
-		<div
-			class="progress-bar"
-			role="progressbar"
-			aria-valuemin="0"
-			aria-valuemax="100"
-			aria-valuenow="0"
-			aria-labelledby="pblabel"
-		>
-			<div class="bar" style="width: {{ percent }}%" />
-		</div>
+		{% include "excerpts/tools/_progress_bar.html" with percent=percent %}
 	</p>
 
 	<p>

@@ -1,0 +1,34 @@
+<div
+	id="autotag-progress"
+	hx-get="{% url 'get_autotag_progress' %}"
+	hx-trigger="every 1500ms"
+	hx-target="this"
+	hx-swap="innerHTML"
+>
+	<p>
+		Current Excerpt: {{ status.job.progress }}
+	</p>
+
+	{% comment %}<p>                                                 {% endcomment %}
+	{% comment %}    Comparing Against Excerpt: {{ status.job.subprogress }}{% endcomment %}
+	{% comment %}</p>                                                {% endcomment %}
+
+	<p>
+		Total Excerpts: {{ status.job.total }}
+	</p>
+
+	<p>
+		<label id="pblabel">Progress</label>: {{ status.percent }}%
+
+		{% include "excerpts/tools/_progress_bar.html" with status=status %}
+	</p>
+
+	<p>
+		<a
+			hx-get="{% url 'stop_autotag' %}"
+			hx-trigger="click"
+			hx-swap="outerHTML"
+			hx-target="#autotag-progress"
+		>Stop (resumable any time)</a>
+	</p>
+</div>

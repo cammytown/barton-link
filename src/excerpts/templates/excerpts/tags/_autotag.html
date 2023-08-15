@@ -1,0 +1,10 @@
+<a
+	hx-post="/excerpts/excerpt/{{ autotag.excerpt.id }}/add_autotag/{{ autotag.tag.id }}"
+	hx-trigger="click"
+	hx-target="#autotags-{{ excerpt.id }} .excerpt-tags"
+	class="block tag autotag"
+	{% comment %}href="/excerpts/tags/{{ tag_obj.tag.id }}/"{% endcomment %}
+>
+	{{ autotag.tag.name }}
+	({{ autotag.sbert_similarity|floatformat:"2" }})
+</a>

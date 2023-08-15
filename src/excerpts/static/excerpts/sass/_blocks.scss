@@ -21,6 +21,10 @@
 			@extend .disabled;
 		}
 
+		&.autotag {
+			@extend .autotag;
+		}
+
 		.block-controls {
 			display: inline-block;
 			position: absolute;

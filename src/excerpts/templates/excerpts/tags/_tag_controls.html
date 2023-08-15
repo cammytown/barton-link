@@ -2,6 +2,7 @@
 	<a
 		hx-post="/excerpts/excerpt/{{ excerpt.id }}/remove_tag/{{ tag.id }}"
 		hx-trigger="click"
+		hx-vals='{"show_unused": {{ show_unused|yesno:"true,false" }}}'
 		class="block-control red"
 	>
 		x

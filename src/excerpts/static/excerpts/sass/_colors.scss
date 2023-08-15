@@ -48,14 +48,23 @@ $textBrightness: 90%;
 	@include disabled;
 }
 
-.deleted {
-	background: rgb(50, 10, 10);
-	color: rgb(220, 120, 120);
-	padding: 10px;
-	margin-bottom: 10px;
+@mixin deleted {
+	color: rgb(50, 10, 10);
+	background: rgba(50, 10, 10, 0.1);
+
+	&:hover {
+		color: rgb(120, 10, 10);
+		background: rgba(50, 10, 10, 0.2);
+	}
 }
 
-.autotag {
+.deleted {
+	//padding: 10px;
+	//margin-bottom: 10px;
+	@include deleted;
+}
+
+@mixin autotag {
 	color: rgb(155, 205, 205);
 	background: rgba(105, 205, 205, 0.1);
 
@@ -63,6 +72,10 @@ $textBrightness: 90%;
 		color: rgb(105, 255, 255);
 		background: rgba(105, 205, 205, 0.2);
 	}
+}
+
+.autotag {
+	@include autotag;
 }
 
 .metadata {
