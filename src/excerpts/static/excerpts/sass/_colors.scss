@@ -1,7 +1,8 @@
+$startingHue: 270;
 $hueRotateSpeed: 500s;
 
 //@TODO probably turn this redundant code into a mixin if they support params
-@keyframes header-hue-rotate {
+@keyframes background-hue-rotate {
 	0% { background-color: hsl(270, 35%, 7%); }
 	25% { background-color: hsl(0, 35%, 7%); }
 	50% { background-color: hsl(90, 35%, 7%); }
@@ -9,21 +10,24 @@ $hueRotateSpeed: 500s;
 	100% { background-color: hsl(270, 35%, 7%); }
 }
 
+$contentBgSaturation: 26.8%;
+$contentBgBrightness: 7.7%;
 @keyframes body-hue-rotate {
-	0% { background-color: hsl(270, 23.8%, 4.1%); }
-	25% { background-color: hsl(0, 23.8%, 4.1%); }
-	50% { background-color: hsl(90, 23.8%, 4.1%); }
-	75% { background-color: hsl(180, 23.8%, 4.1%); }
-	100% { background-color: hsl(270, 23.8%, 4.1%); }
+	0% { background-color: hsl(270, $contentBgSaturation, $contentBgBrightness); }
+	25% { background-color: hsl(0, $contentBgSaturation, $contentBgBrightness); }
+	50% { background-color: hsl(90, $contentBgSaturation, $contentBgBrightness); }
+	75% { background-color: hsl(180, $contentBgSaturation, $contentBgBrightness); }
+	100% { background-color: hsl(270, $contentBgSaturation, $contentBgBrightness); }
 }
 
+$textSaturation: 46.8%;
 $textBrightness: 90%;
 @keyframes text-hue-rotate {
-	0% { color: hsl(270, 46.8%, $textBrightness); }
-	25% { color: hsl(0, 46.8%, $textBrightness); }
-	50% { color: hsl(90, 46.8%, $textBrightness); }
-	75% { color: hsl(180, 46.8%, $textBrightness); }
-	100% { color: hsl(270, 46.8%, $textBrightness); }
+	0% { color: hsl(270, $textSaturation, $textBrightness); }
+	25% { color: hsl(0, $textSaturation, $textBrightness); }
+	50% { color: hsl(90, $textSaturation, $textBrightness); }
+	75% { color: hsl(180, $textSaturation, $textBrightness); }
+	100% { color: hsl(270, $textSaturation, $textBrightness); }
 }
 
 @keyframes hue-rotate {

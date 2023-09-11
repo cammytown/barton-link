@@ -3,9 +3,11 @@
 {% block title %}Excerpts{% endblock %}
 
 {% block content %}
+<div class="row">
 	<h1>Excerpts</h1>
 
 	<form
+		id="excerpt-search"
 		hx-get="{% url 'search' %}?page={{ page_obj.number }}"
 		hx-target="#excerpt-list"
 		hx-trigger="change"
@@ -27,8 +29,9 @@
 
 		{% comment %}<input type="submit" value="Search" />{% endcomment %}
 	</form>
+</div>
 
-	<div id="excerpt-list">
-		{% include "excerpts/excerpts/_excerpt_list.html" %}
-	</div>
+<div id="excerpt-list">
+	{% include "excerpts/excerpts/_excerpt_list.html" %}
+</div>
 {% endblock %}

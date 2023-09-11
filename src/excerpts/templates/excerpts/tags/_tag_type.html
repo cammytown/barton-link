@@ -1,6 +1,6 @@
 {% include "excerpts/tags/_tag_type_header.html" %}
 
-<div class="blocks tags">
+<section class="blocks tags">
 	{% for tag in tag_type.tags.all %}
 	{% comment %}
 	<div class="block tag">
@@ -29,4 +29,4 @@
 		{{ tag.name }}
 	</a>
 	{% endfor %}
-</div>
+</section>

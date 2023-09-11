@@ -1,26 +1,28 @@
-<p>
-	Displaying results {{ page_obj.start_index }} - {{ page_obj.end_index }}
-	of {{ page_obj.paginator.count }}.
-</p>
+<div class="excerpt-list-meta row">
+	<div class="controls">
+		{% if prev_page_url %}
+			<a href="{{ prev_page_url }}">Previous</a>
+		{% else %}
+			<span class="control disabled">Previous</span>
+		{% endif %}
 
-<div class="controls">
-	{% if prev_page_url %}
-		<a href="{{ prev_page_url }}">Previous</a>
-	{% else %}
-		<span class="disabled">Previous</span>
-	{% endif %}
+		{% if next_page_url %}
+			<a href="{{ next_page_url }}">Next</a>
+		{% else %}
+			<span class="control disabled">Next</span>
+		{% endif %}
+	</div>
 
-	{% if next_page_url %}
-		<a href="{{ next_page_url }}">Next</a>
-	{% else %}
-		<span class="disabled">Next</span>
-	{% endif %}
+	<span>
+		Displaying results {{ page_obj.start_index }} - {{ page_obj.end_index }}
+		of {{ page_obj.paginator.count }}.
+	</span>
 </div>
 
 <!--<p><a href="/excerpts/excerpt/new/">New Excerpt</a></p>-->
 
 {% if page_obj %}
-<ul>
+<ul class="excerpt-list">
 {% for excerpt in page_obj %}
 	{% include "excerpts/excerpts/_excerpt_list_single.html" with excerpt=excerpt %}
 {% endfor %}
@@ -28,4 +30,3 @@
 {% else %}
 <p>No excerpts are available.</p>
 {% endif %}
-

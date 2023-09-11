@@ -7,12 +7,13 @@ Barton Link is a tool for writers to organize excerpts of writing before (and af
 
 Setup
 ```shell
+cd barton-fink/
+
 # Optionally create and activate venv
 python3 -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-cd barton-fink/
 pip install -e .[all] # See pyproject.toml for optional-dependencies
 
 # Setup database with Django

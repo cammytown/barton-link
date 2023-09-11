@@ -1,8 +1,10 @@
 {% extends 'excerpts/base.html' %}
-
 {% block title %}Tags{% endblock %}
+{% block content_class %}excerpts-tags{% endblock %}
 
 {% block content %}
+
+<h2>Tags</h2>
 
 {% for tag_type in tag_types %}
 	{% include 'excerpts/tags/_tag_type.html' %}

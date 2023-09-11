@@ -1,29 +1,60 @@
 body {
-	background: rgb(20, 20, 20);
-	color: rgb(205, 205, 205);
+	//background: rgb(20, 20, 20);
+	//color: rgb(205, 205, 205);
+	background-color: hsl(70, 35%, 7%);
+	animation: background-hue-rotate $hueRotateSpeed linear infinite,
+		text-hue-rotate $hueRotateSpeed linear infinite;
+	background-image: url('/static/excerpts/images/damask.png');
+	background-position: center;
+	
+	font-size: 1.1em;
 }
 
 #content {
 	width: 900px;
 	margin: 0 auto;
-	padding: 10px 30px;
-	background: hsl(270, 23.8%, 4.1%);
-	animation: body-hue-rotate $hueRotateSpeed linear infinite;
+	padding: 30px;
+	background-color: hsl(70, 35%, 7%);
+	animation: background-hue-rotate $hueRotateSpeed linear infinite;
+	border-radius: 20px;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+
+	//background: hsl($startingHue, $contentBgSaturation, $contentBgBrightness);
+	//animation: body-hue-rotate $hueRotateSpeed linear infinite;
+
+	h1, h2, h3, h4, h5, h6 {
+		margin: 0 0 10px;
+	}
 
 	header {
 		display: flex;
+		//margin-top: 20px;
 
-		h1, h2, h3, h4, h5, h6 {
-			margin: 0;
-		}
+		//&:first-child {
+		//    margin-top: 5px;
+		//}
 
 		.control {
 			display: none;
 			margin-left: 10px;
+			font-size: 0.9em;
+			color: rgb(145, 145, 225);
 		}
 
 		&:hover .control {
 			display: block;
 		}
 	}
+
+	section {
+		margin-bottom: 20px;
+	}
 }
+
+//@REVISIT placement
+.row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+

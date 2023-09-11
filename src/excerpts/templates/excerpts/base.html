@@ -1,29 +1,33 @@
 <!doctype html>
 <html lang="en">
-<head>
-	<meta charset="utf-8">
-	<title>{% block title %}{% endblock %}</title>
+	<head>
+		<meta charset="utf-8">
+		<title>{% block title %}{% endblock %}</title>
 
-	{% load static %}
+		{% load static %}
 
-	<link rel="stylesheet" href="{% static 'excerpts/excerpts.css' %}">
-	<script src="{% static 'excerpts/htmx.min.js' %}"></script>
+		<link rel="stylesheet" href="{% static 'excerpts/excerpts.css' %}">
+		<script src="{% static 'excerpts/htmx.min.js' %}"></script>
 
-	{% block head %}{% endblock %}
-</head>
+		{% block head %}{% endblock %}
+	</head>
 
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-	<nav id="main-menu">
-		<ul>
-			<li><a href="{% url 'index' %}">Excerpts</a></li>
-			<li><a href="{% url 'tags' %}">Tags</a></li>
-			<li><a href="{% url 'import' %}">Import</a></li>
-			<li><a href="{% url 'tools' %}">Tools</a></li>
-		</ul>
-	</nav>
+	<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+		<header id="main-header">
+			<h1><a href="{% url 'index' %}">Barton Link</a></h1>
 
-	<div id="content" class="{% block content_class %}{% endblock %}">
-		{% block content %}{% endblock %}
-	</div>
-</body>
+			<nav id="main-menu">
+				<ul>
+					<li><a href="{% url 'index' %}">Excerpts</a></li>
+					<li><a href="{% url 'tags' %}">Tags</a></li>
+					<li><a href="{% url 'import' %}">Import</a></li>
+					<li><a href="{% url 'tools' %}">Tools</a></li>
+				</ul>
+			</nav>
+		</header>
+
+		<div id="content" class="{% block content_class %}{% endblock %}">
+			{% block content %}{% endblock %}
+		</div>
+	</body>
 </html>

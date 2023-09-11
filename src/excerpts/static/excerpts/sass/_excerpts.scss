@@ -1,9 +1,23 @@
-.excerpt-list-single {
-	//display: inline-block;
-	//vertical-align: top;
-	margin-bottom: 10px;
+ul.excerpt-list {
+	margin: 10px 0 0;
+	padding: 0;
+	list-style: none;
 
+	li {
+		padding: 15px;
+		margin: 0;
+
+		&:hover {
+			background: rgba(105, 105, 105, 0.1);
+		}
+	}
 }
+
+//.excerpt-list-single {
+//    //display: inline-block;
+//    //vertical-align: top;
+//    margin-bottom: 10px;
+//}
 
 a.excerpt {
 	display: inline-block;

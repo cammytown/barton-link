@@ -2,4 +2,19 @@ input[type="text"], select, button {
 	padding: 5px;
 	font-size: 1.2em;
 	line-height: 1.5em;
+	background: rgb(20, 20, 20);
+	color: rgb(205, 205, 205);
+	border: 1px solid rgb(105, 105, 105);
+}
+
+form#excerpt-search {
+	//display: flex;
+	//justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+
+	//input[type="text"] {
+	//    flex-grow: 1;
+	//    margin-right: 10px;
+	//}
 }
