@@ -7,7 +7,7 @@ Barton Link is a tool for writers to organize excerpts of writing before (and af
 
 Setup
 ```shell
-cd barton-fink/
+cd barton-link/
 
 # Optionally create and activate venv
 python3 -m venv .venv
