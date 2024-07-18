@@ -14,6 +14,7 @@ from django.shortcuts import render
 from ..models import Excerpt,\
         ExcerptSimilarity,\
         ExcerptVersion,\
+        RelationshipType,\
         Tag,\
         TagType,\
         Job
@@ -88,9 +89,8 @@ def import_excerpts(request):
             default_tags = [Tag.objects.get(id=tag_id).name for tag_id in default_tags]
 
             match request.POST.get("import_method"):
-                case "paste":
-                    #@TODO
-                    return HttpResponse("Paste import not yet implemented.")
+                case "text_paste":
+                    return post_import_text(request, default_tags)
 
                 case "upload":
                     return post_import_files(request, default_tags)
@@ -99,6 +99,9 @@ def import_excerpts(request):
                     return post_import_gdocs(request, default_tags)
 
                 case _:
+                    #@TODO better logging
+                    print("Invalid import method.")
+
                     return HttpResponseBadRequest(json.dumps({
                         "error": "Invalid import method.",
                         }))
@@ -203,6 +206,27 @@ def import_text(request):
     # If not HTMX request
     else:
         return HttpResponseNotFound()
+
+def post_import_text(request, default_tags = []):
+    # Get text from textarea
+    text = request.POST.get("excerpts")
+
+    # Parse text into ParserExcerpt objects
+    mdParser = MarkdownParser()
+    parser_excerpts = mdParser.parse_text(text, default_tags)
+
+    # Check for duplicate excerpts
+    excerpts, duplicates = check_for_duplicate_excerpts(parser_excerpts)
+
+    # Save excerpts to session
+    save_excerpts_to_session(request, excerpts)
+
+    # Present confirmation page
+    return render(request, "excerpts/import/_import_confirmation.html", {
+        "excerpts": excerpts,
+        "duplicates": duplicates,
+        "default_tags": default_tags,
+    })
 
 def import_gdocs(request):
     # If HTMX request
@@ -409,3 +433,16 @@ def gdocs_test(request):
         response += f"\nLoaded {len(parser_excerpts)} excerpts from {document_id}."
 
     return HttpResponse(response)
+
+def create_default_relationship_types(request):
+    """
+    Create default relationship types.
+    """
+
+    # Create default relationship types
+    RelationshipType.objects.get_or_create(name="is_related_to")
+    RelationshipType.objects.get_or_create(name="is_part_of")
+    RelationshipType.objects.get_or_create(name="is_synonymous_with")
+    RelationshipType.objects.get_or_create(name="is_antonymous_with")
+
+    return HttpResponse("Default relationship types created.")

@@ -15,6 +15,13 @@ urlpatterns = [
 
     path("excerpt/<int:excerpt_id>", views.excerpt, name="excerpt"),
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
+    path("excerpt/create", views.create_excerpt, name="create_excerpt"),
+
+    path("entities", views.entities, name="entities"),
+    path("entities/create", views.create_entity, name="create_entity"),
+
+    path("relationships/create", views.create_relationship, name="create_relationship"),
+    path("relationships/create_type", views.create_relationship_type, name="create_relationship_type"),
 
     path("tags", views.tags, name="tags"),
     path("tags/create", views.create_tag, name="create_tag"),
@@ -57,6 +64,10 @@ urlpatterns = [
     path("get-analysis-progress",
          views.get_analysis_progress,
          name="get_analysis_progress"),
+
+    path("create-default-relationship-types",
+            views.create_default_relationship_types,
+            name="create_default_relationship_types"),
 
     path("import", views.import_excerpts, name="import"),
     path("import/file-upload", views.import_file, name="import_file_upload"),

@@ -12,7 +12,7 @@ from ..models import \
         ExcerptSimilarity,\
         Tag,\
         TagType,\
-        Character
+        Entity
 
 
 def index(request):
@@ -134,6 +134,23 @@ def excerpt_htmx(request, excerpt_id):
 
         case _:
             return HttpResponse(status=405)
+
+def create_excerpt(request):
+    if request.method == "POST":
+        # Parse POST request
+        request_data = QueryDict(request.body)
+
+        # Extract excerpt text
+        excerpt_text = request_data.get("excerpt_content")
+
+        # Create new excerpt
+        excerpt = Excerpt.objects.create(content=excerpt_text)
+
+        # Create new version
+        ExcerptVersion.objects.create(excerpt=excerpt, content=excerpt_text)
+
+        # Redirect to new excerpt
+        return redirect("excerpt", excerpt_id=excerpt.id)
 
 def add_tag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)

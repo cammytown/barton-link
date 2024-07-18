@@ -12,6 +12,8 @@
 		hx-target="#excerpt-list"
 		hx-trigger="change"
 	>
+		{% csrf_token %}
+
 		<input
 			type="text"
 			name="search"
@@ -32,6 +34,8 @@
 </div>
 
 <div id="excerpt-list">
+	{% include "excerpts/excerpts/_excerpt_create.html" %}
+
 	{% include "excerpts/excerpts/_excerpt_list.html" %}
 </div>
 {% endblock %}

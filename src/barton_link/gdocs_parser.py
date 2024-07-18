@@ -40,6 +40,10 @@ class GDocsParser(BaseParser):
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
+                #@TODO we're getting an error when the token is expired that
+                # shuts the whole show down. What I've been doing is deleting
+                # the token.json file and re-running the script. Not clear on
+                # how to handle this.
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(

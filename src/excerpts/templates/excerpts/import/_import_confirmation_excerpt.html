@@ -15,7 +15,7 @@
 
 	{% if excerpt.children %}
 		<ul>
-		{% for child in excerpt.children %}
+		{% for child in excerpt.children.all %}
 			{% with excerpt=child %}
 			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
 			{% endwith %}

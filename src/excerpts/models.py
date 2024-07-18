@@ -40,11 +40,56 @@ class Tag(SoftDeleteModel):
     def __str__(self):
         return self.name
 
-class Character(SoftDeleteModel):
+class RelationshipType(models.Model):
     name = models.TextField()
     description = models.TextField()
 
+    def __str__(self):
+        return self.name
+
+class EntityRelationship(models.Model):
+    # RELATIONSHIP_CHOICES = {
+    #     "IS": "is",
+    #     "HAS": "has",
+    #     "CONTAINS": "contains",
+    #     "PART_OF": "part of",
+    # }
+
+    entity_a = models.ForeignKey('Entity',
+                                    on_delete=models.CASCADE,
+                                    related_name='entity_a')
+
+    entity_b = models.ForeignKey('Entity',
+                                    on_delete=models.CASCADE,
+                                    related_name='entity_b')
+
+    relationship_type = models.ForeignKey('RelationshipType',
+                                            on_delete=models.CASCADE)
+
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.entity_a} - {self.entity_b}: {self.relationship_type}"
+
+class Entity(SoftDeleteModel):
+    # ENTITY_TYPES = {
+    #     "CHARACTER": "character",
+    #     "PLACE": "place",
+    #     "OBJECT": "object",
+    #     # "EVENT": "event",
+    #     # "OTHER": "other",
+    # }
+
+    name = models.TextField()
+
+    description = models.TextField()
+
     tags = models.ManyToManyField(Tag)
+
+    relationships = models.ManyToManyField('self',
+                                            through='EntityRelationship',
+                                            symmetrical=False,
+                                            related_name='related_entities')
 
     def __str__(self):
         return self.name
@@ -78,7 +123,7 @@ class Excerpt(SoftDeleteModel):
                                   through='ExcerptTag',
                                   related_name='excerpts')
 
-    characters = models.ManyToManyField(Character)
+    entities = models.ManyToManyField(Entity)
     
     parents = models.ManyToManyField('self',
                                      through='ExcerptRelationship',
@@ -133,6 +178,7 @@ class Excerpt(SoftDeleteModel):
         super(Excerpt, self).save(*args, **kwargs)
 
         # Create version if this is a new excerpt
+        #@REVISIT placement
         if not self.versions.exists():
             ExcerptVersion.objects.create(excerpt=self, content=self.content)
 
@@ -172,6 +218,15 @@ class ExcerptAutoTag(models.Model):
 
     def __str__(self):
         return f"{self.excerpt} - {self.tag}: {self.sbert_similarity}"
+
+class Concept(models.Model):
+    # name = models.TextField()
+    description = models.TextField()
+
+    # type
+
+    # def __str__(self):
+    #     return self.name
 
 class Job(models.Model):
     name = models.TextField()

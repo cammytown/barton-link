@@ -9,8 +9,11 @@
 <h2>Tools</h2>
 
 <div class="controls">
-	<a href="{% url 'analyze_similarities' %}">Analyze Similarities</a>
+	<a href="{% url 'analyze_similarities' %}">Analyze Excerpt Similarities</a>
 	<a href="{% url 'autotag' %}">Autotag Excerpts</a>
+	<a href="{% url 'import' %}">Import Excerpts</a>
+
+	<a href="{% url 'create_default_relationship_types' %}">Create Default Relationship Types</a>
 </div>
 
 {% endblock %}

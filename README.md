@@ -10,7 +10,7 @@ Setup
 cd barton-link/
 
 # Optionally create and activate venv
-python3 -m venv .venv
+python3 -m venv .venv --prompt="barton-link"
 source .venv/bin/activate
 
 # Install dependencies

@@ -18,6 +18,11 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+    #@TODO directing both the root and /excerpts/ to the same view until we decide
+    # if there will be another module for barton link other than excerpts.
+    # probably make that decision soon; hope this doesn't come back to bite us
+    path('', include('excerpts.urls')),
     path('excerpts/', include('excerpts.urls')),
+
     path('admin/', admin.site.urls),
 ]
