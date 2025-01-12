@@ -1,0 +1,15 @@
+{#@TODO probably don't nest forms#}
+<form
+	id="relationship-type-add"
+	hx-post="{% url 'create_relationship_type' %}"
+	hx-target="#relationship-type-add"
+>
+	{% csrf_token %}
+
+	<h3>Create Relationship Type</h3>
+
+	<input type="text" name="name" placeholder="Relationship type name" />
+	<input type="text" name="description" placeholder="Relationship type description" />
+
+	<button type="submit">Create Relationship Type</button>
+</form>

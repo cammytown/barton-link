@@ -1,0 +1,32 @@
+{% extends 'excerpts/base.html' %}
+{% block title %}Entities{% endblock %}
+{% block content_class %}excerpts-entities{% endblock %}
+
+{% block content %}
+
+<h2>Entities</h2>
+
+<a
+	{#href="/entities/create"#}
+	hx-get="/entities/create"
+	hx-trigger="click"       
+	hx-swap="outerHTML"      
+	{#class="button"#}
+>
+	Create Entity
+</a>
+
+{#<a                                     #}
+{#    hx-get="/relationship-types/create"#}
+{#    hx-trigger="click"                 #}
+{#    hx-swap="outerHTML"                #}
+{#    [>class="button"<]                 #}
+{#>                                      #}
+{#    Create Relationship Type           #}
+{#</a>                                   #}
+
+{% for entity in entities %}
+	{% include 'excerpts/entities/_entity.html' %}
+{% endfor %}
+
+{% endblock %}

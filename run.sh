@@ -1,7 +1,7 @@
 # If virtual environment doesn't exist
 if [ ! -d ".venv" ]; then
 	# Create virtual environment
-	python3 -m venv .venv
+	python3 -m venv .venv --prompt "barton-link"
 
 	# Activate virtual environment
 	source .venv/bin/activate

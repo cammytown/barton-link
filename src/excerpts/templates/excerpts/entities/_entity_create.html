@@ -1,0 +1,34 @@
+<form
+	id="entity-add"
+	hx-post="{% url 'create_entity' %}"
+	hx-target="#entity-add"
+>
+	{% csrf_token %}
+
+	<h3>Create Entity</h3>
+
+	<fieldset>
+		<input type="text" name="name" placeholder="Entity name" />
+
+		<input type="text" name="description" placeholder="Entity description" />
+	</fieldset>
+
+	<fieldset>
+		<h4>Relationships</h4>
+
+		{% for relationship in relationships %}
+			{% include 'excerpts/relationships/_relationship.html' %}
+		{% endfor %}
+
+		<button
+			hx-get="{% url 'create_relationship' %}"
+			hx-trigger="click"
+			hx-target="this"
+			hx-swap="outerHTML"
+		>
+			+ Add relationship
+		</button>
+	</fieldset>
+
+	<button type="submit">Add</button>
+</form>

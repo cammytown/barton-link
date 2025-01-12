@@ -1,0 +1,11 @@
+<form
+	id="excerpt-add"
+	hx-post="{% url 'create_excerpt' %}"
+	hx-target="#excerpt-add"
+>
+	{% csrf_token %}
+
+	<input type="text" name="excerpt" placeholder="Add an excerpt" />
+
+	<button type="submit">Add</button>
+</form>

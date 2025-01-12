@@ -1,0 +1,39 @@
+{#@TODO probably don't nest forms#}
+<form
+	id="relationship-add"
+	hx-post="{% url 'create_relationship' %}"
+	hx-target="#entity-add"
+>
+	{% csrf_token %}
+
+	<h3>Create Relationship</h3>
+
+	<label for="relationship_type">Relationship type</label>
+	<select name="relationship_type">
+		{% for relationship_type in relationship_types %}
+			<option value="{{ relationship_type.id }}">
+				{{ relationship_type.name }}
+			</option>
+		{% endfor %}
+	</select>
+
+	<button
+		hx-get="{% url 'create_relationship_type' %}"
+		hx-trigger="click"
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		+ Add relationship type
+	</button>
+
+	<label for="entity">Entity</label>
+	<input type="text" name="name" placeholder="Entity name" />
+
+	<label for="is_bidirectional">Direction</label>
+	<select name="is_bidirectional">
+		<option value="False">Unidirectional</option>
+		<option value="True">Bidirectional</option>
+	</select>
+
+	<button type="submit">Add</button>
+</form>

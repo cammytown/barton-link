@@ -1,0 +1,15 @@
+{% extends "excerpts/base.html" %}
+{% block title %}{{ entity.name }}{% endblock %}
+{% block content_class %}tag{% endblock %}
+
+{% block content %}
+
+{% include "excerpts/tags/_entity_header.html" %}
+
+<p><a href="/excerpts/">Back to all excerpts</a></p>
+
+{% include "excerpts/excerpts/_excerpt_list.html" %}
+
+<a href="/excerpts/">Back to all excerpts</a>
+
+{% endblock %}
