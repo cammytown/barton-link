@@ -9,7 +9,7 @@
 	<form
 		id="excerpt-search"
 		hx-get="{% url 'search' %}?page={{ page_obj.number }}"
-		hx-target="#excerpt-list"
+		hx-target="#excerpt-list-content"
 		hx-trigger="change"
 	>
 		{% csrf_token %}
@@ -33,9 +33,9 @@
 	</form>
 </div>
 
-<div id="excerpt-list">
-	{% include "excerpts/excerpts/_excerpt_create.html" %}
+{% include "excerpts/excerpts/_excerpt_create.html" %}
 
+<div id="excerpt-list">
 	{% include "excerpts/excerpts/_excerpt_list.html" %}
 </div>
 {% endblock %}

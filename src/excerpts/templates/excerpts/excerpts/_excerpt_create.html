@@ -1,11 +1,12 @@
 <form
 	id="excerpt-add"
 	hx-post="{% url 'create_excerpt' %}"
-	hx-target="#excerpt-add"
+	hx-target="#excerpt-list"
+	hx-on::after-request="if(event.detail.successful) this.reset()"
 >
 	{% csrf_token %}
 
-	<input type="text" name="excerpt" placeholder="Add an excerpt" />
+	<input type="text" name="excerpt_content" placeholder="Add an excerpt" />
 
 	<button type="submit">Add</button>
 </form>
