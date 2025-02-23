@@ -1,6 +1,18 @@
 class ParserExcerpt:
     """
-    Parser excerpt.
+    A class representing a parsed excerpt of text with associated metadata.
+
+    This class is used to store and manipulate excerpts of text extracted during parsing,
+    along with metadata like tags, source information, and hierarchical relationships.
+    It supports serialization to/from dictionaries and maintains a tree structure
+    through parent-child relationships between excerpts.
+
+    Attributes:
+        content (str): The actual text content of the excerpt
+        metadata (dict): Additional metadata about the excerpt like source, date etc.
+        tags (list): List of tags/categories associated with the excerpt
+        indent_level (int): The indentation level indicating hierarchy
+        children (list): List of child ParserExcerpt objects
     """
 
     def __init__(self,
@@ -32,7 +44,7 @@ class ParserExcerpt:
 
     def to_dict(self):
         """
-        To dict.
+        Serializes the excerpt and its children to a dictionary format.
         """
 
         return {
@@ -47,7 +59,7 @@ class ParserExcerpt:
     @staticmethod
     def from_dict(data):
         """
-        From dict.
+        Creates a ParserExcerpt instance from a dictionary representation.
         """
 
         excerpt = ParserExcerpt(data['excerpt'],
@@ -81,9 +93,28 @@ class BaseParser:
         self.state['category_excerpts'] = []
 
     def update_heading(self, heading, level = 1):
-        # Reduce level by 1 (first gdocs heading is level 1, we want 0)
-        level -= 1
-
+        """
+        Updates the parser's heading hierarchy state when encountering a new heading.
+        
+        This method manages a hierarchical structure of headings (like h1, h2, h3 in HTML or
+        #, ##, ### in Markdown) which are used as tags for excerpts. When a new heading is 
+        encountered:
+        
+        1. It closes any previous heading section
+        2. For level 0, it resets the entire hierarchy to just this heading
+        3. For levels > 0:
+           - If the new heading is deeper than current (e.g. h1 -> h3), it pads intermediate
+             levels with empty strings
+           - If the new heading is shallower or same level (e.g. h3 -> h2), it truncates deeper
+             headings and adds the new one
+        
+        The heading hierarchy is maintained as state and automatically added as tags to any
+        excerpts created under those headings.
+        
+        Args:
+            heading (str): The text content of the heading
+            level (int, optional): The heading's level in hierarchy (0-based). Defaults to 1.
+        """
         self.close_heading()
 
         # If level is 0, reset heading hierarchy

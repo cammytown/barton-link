@@ -178,6 +178,11 @@ class GDocsParser(BaseParser):
 
         return excerpt
 
+    def update_heading(self, heading, level = 1):
+        # Reduce level by 1 (first gdocs heading is level 1, we want 0)
+        level -= 1
+        super().update_heading(heading, level)
+
     def parse_paragraph(self, component):
         # Get component type
         component_type = component.get('paragraph') \
