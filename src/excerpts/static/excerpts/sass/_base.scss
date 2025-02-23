@@ -1,4 +1,8 @@
 body {
+	min-height: 100vh; /* Fallback for browsers that don't support dvh */
+	min-height: 100dvh; /* Dynamic viewport height - better for mobile */
+	display: flex;
+	flex-direction: column;
 	//background: rgb(20, 20, 20);
 	//color: rgb(205, 205, 205);
 	background-color: hsl(70, 35%, 7%);
@@ -8,6 +12,7 @@ body {
 	background-position: center;
 	
 	font-size: 1.1em;
+	margin: 0; /* Ensure no default margins affect the full height */
 }
 
 #content {

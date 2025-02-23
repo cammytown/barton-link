@@ -1,16 +1,18 @@
 [project]
 name = "barton-link"
 version = "0.1.0"
-description = ""
+description = "Search and filter your revelations."
 authors = [
 	{ name = "Cammy", email = "cameronsteele@steelecameron.com" }
 ]
 readme = "README.md"
-#requires-python = ">=3.9.0,<3.11"
+requires-python = ">=3.9.0,<3.13"
 dependencies = [
 	"appdirs >=1.4.4, <2.0",
-	"spacy >=3.5.3, <4.0",
+	"spacy >=3.8.4, <4.0",
 	"Django >=4.2.1, <5.0",
+	"django-compressor>=4.4",
+	"django-libsass>=0.9",
 	#"spacy[cuda-autodetect] >=3.5.3, <4.0",
 ]
 
@@ -23,11 +25,15 @@ googledocs = [
 similarity = [
 	"sentence-transformers"
 ]
+dev = [
+	"black>=23.7.0",
+]
 all = [
 	"google-api-python-client",
 	"google-auth-httplib2",
 	"google-auth-oauthlib",
-	"sentence-transformers"
+	"sentence-transformers",
+	"barton-link[dev]",
 ]
 
 [build-system]

@@ -5,8 +5,12 @@
 		<title>{% block title %}{% endblock %}</title>
 
 		{% load static %}
+		{% load compress %}
 
-		<link rel="stylesheet" href="{% static 'excerpts/excerpts.css' %}">
+		{% compress css %}
+		<link type="text/x-scss" rel="stylesheet" href="{% static 'excerpts/sass/style.scss' %}">
+		{% endcompress %}
+		
 		<script src="{% static 'excerpts/htmx.min.js' %}"></script>
 
 		{% block head %}{% endblock %}

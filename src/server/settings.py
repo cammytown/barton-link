@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'compressor',
 ]
 
 MIDDLEWARE = [
@@ -107,6 +108,31 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+]
+
+# Django Compressor settings
+COMPRESS_ENABLED = True
+COMPRESS_PRECOMPILERS = (
+    ('text/x-scss', 'django_libsass.SassCompiler'),
+)
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.rCSSMinFilter',
+]
+LIBSASS_OUTPUT_STYLE = 'compressed'
+LIBSASS_SOURCE_MAPS = True
+
+# Development settings for Django Compressor
+if DEBUG:
+    COMPRESS_ENABLED = False  # Disable compression in debug mode
+    COMPRESS_DEBUG_TOGGLE = 'nocompress'  # Enable the nocompress GET parameter
+    COMPRESS_OFFLINE = False  # Disable offline compression
+    COMPRESS_CACHE_BACKEND = 'django.core.cache.backends.dummy.DummyCache'  # Disable caching
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

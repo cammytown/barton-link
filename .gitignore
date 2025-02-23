@@ -1,15 +1,18 @@
+#@TODO see what's still in use
+
 .venv
 config/.gdocs/
 barton.db
 
 src/excerpts/static/excerpts/*.css
+
+src/static/CACHE/
 *.css.map
 .sass-cache/
 
 __pycache__/
 *.egg-info/
 
-# Temporaru
 cache/
 debug/
 db.sqlite3
