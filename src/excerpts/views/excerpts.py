@@ -146,11 +146,17 @@ def create_excerpt(request):
         # Create new excerpt
         excerpt = Excerpt.objects.create(content=excerpt_text)
 
-        # Create new version
-        ExcerptVersion.objects.create(excerpt=excerpt, content=excerpt_text)
+        # If HTMX request
+        if request.headers.get("HX-Request") == "true":
+            # Reuse search view to get updated list
+            request.GET = request.GET.copy()
 
-        # Redirect to new excerpt
-        return redirect("excerpt", excerpt_id=excerpt.id)
+            # Force page 1 to show the new excerpt
+            request.GET['page'] = 1
+            return search(request)
+        # If browser request
+        else:
+            return redirect("excerpt", excerpt_id=excerpt.id)
 
 def add_tag(request, excerpt_id, tag_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
