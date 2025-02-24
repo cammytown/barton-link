@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from ...models import Excerpt, Tag
+from ...models import Excerpt, Tag, TagType
 from barton_link.base_parser import ParserExcerpt
 
 def check_for_duplicate_excerpts(excerpts):
@@ -20,11 +20,33 @@ def check_for_duplicate_excerpts(excerpts):
 
     return excerpts, duplicates
 
+def identify_new_tags(excerpts):
+    """
+    Identify which tags in the excerpts don't exist in the database.
+    Returns a set of new tag names.
+    """
+    # Get all unique tags from excerpts
+    all_tags = set()
+    for excerpt in excerpts:
+        all_tags.update(excerpt.tags)
+    
+    # Get existing tags from database
+    existing_tags = set(Tag.objects.values_list('name', flat=True))
+    
+    # Return tags that don't exist in database
+    return all_tags - existing_tags
+
 def save_excerpts_to_session(request, excerpts):
     """
     Save excerpts to session for later confirmation.
+    Also saves information about new tags that would be created.
     """
+    # Save excerpts
     request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
+    
+    # Save new tags
+    new_tags = identify_new_tags(excerpts)
+    request.session["new_tags"] = list(new_tags)
 
 def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
     """
@@ -45,6 +67,19 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
             duplicates.append(instance)
 
     return excerpts, duplicates
+
+def get_or_create_default_tag_type():
+    """
+    Get or create the default TagType.
+    """
+    default_tag_type, created = TagType.objects.get_or_create(
+        id=1,
+        defaults={
+            'name': 'default',
+            'description': 'Default tag type'
+        }
+    )
+    return default_tag_type
 
 def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     """
@@ -69,11 +104,17 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     # Save excerpt instance (create id)
     excerpt_instance.save()
 
+    # Ensure default tag type exists
+    #@REVISIT architecture
+    default_tag_type = get_or_create_default_tag_type()
+
     # Add default tags
     for tag in parser_excerpt.tags:
-        # Get or create tag
-        #@TODO keep track of created tags; show user
-        tag_instance, _ = Tag.objects.get_or_create(name=tag)
+        # Get or create tag with default tag type
+        tag_instance, _ = Tag.objects.get_or_create(
+            name=tag,
+            defaults={'type': default_tag_type, 'description': ''}
+        )
 
         # Add tag to excerpt
         excerpt_instance.tags.add(tag_instance)

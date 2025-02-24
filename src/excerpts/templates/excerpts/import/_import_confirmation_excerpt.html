@@ -2,7 +2,7 @@
 	{{ excerpt.content|linebreaksbr }}
 
 	<div class="tags blocks">
-		{% for tag in excerpt.tags %}
+		{% for tag in excerpt.tags.all %}
 			<span class="block tag">{{ tag }}</span>
 		{% endfor %}
 	</div>
@@ -13,14 +13,13 @@
 	</div>
 	{% endif %}
 
-	{% if excerpt.children %}
+	{% if excerpt.children.exists %}
 		<ul>
 		{% for child in excerpt.children.all %}
 			{% with excerpt=child %}
 			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
 			{% endwith %}
 		{% endfor %}
-
 		</ul>
 	{% endif %}
 </li>

@@ -41,9 +41,13 @@ def post_import_files(request, default_tags = []):
     # Save excerpts to session as dicts
     utils.save_excerpts_to_session(request, excerpts)
 
+    # Get new tags
+    new_tags = utils.identify_new_tags(excerpts)
+
     # Present confirmation page
     return render(request, "excerpts/import/_import_confirmation.html", {
         "excerpts": excerpts,
         "duplicates": duplicates,
         "default_tags": default_tags,
+        "new_tags": new_tags,
     })

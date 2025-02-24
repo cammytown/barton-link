@@ -8,6 +8,24 @@
 
 	<h2>Import Confirmation</h2>
 
+	{% if new_tags %}
+	<div class="new-tags">
+		<h3>New Tags</h3>
+		<p>The following tags will be created during import. Uncheck any tags you don't want to create:</p>
+		
+		<div class="blocks tags">
+			{% for tag in new_tags %}
+			<div class="block tag">
+				<label>
+					<input type="checkbox" name="create_tags[]" value="{{ tag }}" checked />
+					{{ tag }}
+				</label>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+
 	<p>
 		{{ excerpts|length }} excerpts will be imported. Review them below.
 	</p>

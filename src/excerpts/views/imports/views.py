@@ -93,19 +93,29 @@ def import_excerpts_confirm(request):
     """
     # Get excerpts from session
     excerpts = request.session["excerpts"]
+    new_tags = request.session.get("new_tags", [])
+
+    # Get selected tags to create
+    tags_to_create = set(request.POST.getlist("create_tags[]"))
 
     # Convert to ParserExcerpt
     parser_excerpts = [ParserExcerpt.from_dict(excerpt) for excerpt in excerpts]
 
+    # Filter out tags that shouldn't be created
+    for excerpt in parser_excerpts:
+        excerpt.tags = [tag for tag in excerpt.tags if tag not in new_tags or tag in tags_to_create]
+
     print("Adding excerpts...")
     # Create database Excerpt from ParserExcerpt
-    excerpts, internal_duplicates = utils.actualize_parser_excerpts(parser_excerpts)
+    created_excerpts, duplicate_excerpts = utils.actualize_parser_excerpts(parser_excerpts)
 
     # Remove excerpts from session
     del request.session["excerpts"]
+    if "new_tags" in request.session:
+        del request.session["new_tags"]
 
     # Return import success page
     return render(request, "excerpts/import/_import_success.html", {
-        "excerpts": parser_excerpts,
-        "internal_duplicates": internal_duplicates,
+        "excerpts": created_excerpts,
+        "internal_duplicates": duplicate_excerpts,
     })
