@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from ...models import Excerpt, Tag, TagType
-from barton_link.base_parser import ParserExcerpt
+from barton_link.parser_excerpt import ParserExcerpt
 
 def check_for_duplicate_excerpts(excerpts):
     """

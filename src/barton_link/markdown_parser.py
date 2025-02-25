@@ -1,4 +1,5 @@
-from .base_parser import BaseParser, ParserExcerpt
+from .base_parser import BaseParser
+from .parser_excerpt import ParserExcerpt
 
 class MarkdownParser(BaseParser):
     # last_indent_level = 0

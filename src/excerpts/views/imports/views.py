@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import render
 from ...models import Tag, TagType
-from barton_link.base_parser import ParserExcerpt
+from barton_link.parser_excerpt import ParserExcerpt
 from . import utils
 from . import file_handler
 from . import text_handler

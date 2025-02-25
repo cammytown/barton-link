@@ -10,7 +10,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from .base_parser import BaseParser, ParserExcerpt
+from .base_parser import BaseParser
+from .parser_excerpt import ParserExcerpt
 # from .models import Excerpt, Tag
 
 class GDocsParser(BaseParser):

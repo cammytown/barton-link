@@ -1,5 +1,6 @@
 import pytest
-from ..base_parser import BaseParser, ParserExcerpt
+from ..base_parser import BaseParser
+from ..parser_excerpt import ParserExcerpt
 
 def test_parser_excerpt_creation():
     """Test basic ParserExcerpt creation and properties."""

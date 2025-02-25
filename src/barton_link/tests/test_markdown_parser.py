@@ -1,6 +1,6 @@
 import pytest
 from ..markdown_parser import MarkdownParser
-from ..base_parser import ParserExcerpt
+from ..parser_excerpt import ParserExcerpt
 
 def test_empty_text():
     """Test parsing empty text."""
