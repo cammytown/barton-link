@@ -22,50 +22,59 @@ def check_for_duplicate_excerpts(excerpts):
     """
     print("Checking for duplicate excerpts...")
     
-    # Step 1: Check for duplicates within the input list
-    seen_contents = {}
-    internal_duplicates = []
-    unique_excerpts = []
+    # Step 1: Collect all excerpt contents (including children) for duplicate checking
+    all_excerpt_contents = {}  # Maps content to excerpt for all excerpts (including children)
     
-    for excerpt in excerpts:
-        # If this excerpt has children, we need to process it regardless
-        # to ensure its unique children are saved
-        if excerpt.children:
-            unique_excerpts.append(excerpt)
-        elif excerpt.content in seen_contents:
-            internal_duplicates.append(excerpt)
+    # Helper function to collect all excerpt contents recursively
+    def collect_all_contents(excerpt, path=""):
+        # Add the excerpt to the map
+        if excerpt.content in all_excerpt_contents:
+            all_excerpt_contents[excerpt.content].append((excerpt, path))
         else:
-            seen_contents[excerpt.content] = True
-            unique_excerpts.append(excerpt)
+            all_excerpt_contents[excerpt.content] = [(excerpt, path)]
+        
+        # Recursively collect children
+        for i, child in enumerate(excerpt.children):
+            collect_all_contents(child, f"{path}_{i}" if path else str(i))
     
-    # Step 2: Check for duplicates against the database
-    # Get all unique content strings from excerpts without children
-    unique_contents = [e.content for e in unique_excerpts if not e.children]
+    # Collect all contents
+    for i, excerpt in enumerate(excerpts):
+        collect_all_contents(excerpt, str(i))
+    
+    # Step 2: Mark duplicates within the input list
+    seen_contents = {}
+    for content, excerpt_list in all_excerpt_contents.items():
+        if len(excerpt_list) > 1:
+            # Mark all but the first occurrence as duplicates
+            for excerpt, _ in excerpt_list[1:]:
+                excerpt.is_duplicate = True
+    
+    # Step 3: Check for duplicates against the database
+    # Get all unique content strings
+    unique_contents = list(all_excerpt_contents.keys())
     
     # Query database once for all potential duplicates
-    #@REVISIT method
     existing_contents = set(Excerpt.objects.filter(
         content__in=unique_contents
     ).values_list('content', flat=True))
     
-    # Separate duplicates and non-duplicates
-    db_duplicates = []
+    # Mark excerpts as duplicates if they exist in the database
+    for content in existing_contents:
+        if content in all_excerpt_contents:
+            for excerpt, _ in all_excerpt_contents[content]:
+                excerpt.is_duplicate = True
+    
+    # Step 4: Separate top-level duplicates and non-duplicates
+    internal_duplicates = []
     non_duplicates = []
     
-    for excerpt in unique_excerpts:
-        # If this excerpt has children, we need to process it regardless
-        # to ensure its unique children are saved
-        if excerpt.children:
-            non_duplicates.append(excerpt)
-        elif excerpt.content in existing_contents:
-            db_duplicates.append(excerpt)
+    for excerpt in excerpts:
+        if excerpt.is_duplicate:
+            internal_duplicates.append(excerpt)
         else:
             non_duplicates.append(excerpt)
     
-    # Combine all duplicates
-    all_duplicates = internal_duplicates + db_duplicates
-    
-    return non_duplicates, all_duplicates
+    return non_duplicates, internal_duplicates
 
 def identify_new_tags(excerpts):
     """
@@ -74,8 +83,18 @@ def identify_new_tags(excerpts):
     """
     # Get all unique tags from excerpts
     all_tags = set()
-    for excerpt in excerpts:
+    
+    def collect_tags_recursively(excerpt):
+        # Add tags from this excerpt
         all_tags.update(excerpt.tags)
+        
+        # Recursively collect tags from children
+        for child in excerpt.children:
+            collect_tags_recursively(child)
+    
+    # Collect tags from all excerpts and their children
+    for excerpt in excerpts:
+        collect_tags_recursively(excerpt)
     
     # Get existing tags from database
     existing_tags = set(Tag.objects.values_list('name', flat=True))
@@ -83,17 +102,39 @@ def identify_new_tags(excerpts):
     # Return tags that don't exist in database
     return all_tags - existing_tags
 
-def save_excerpts_to_session(request, excerpts):
+def save_excerpts_to_session(request, excerpts, duplicates=None):
     """
     Save excerpts to session for later confirmation.
     Also saves information about new tags that would be created.
-    """
-    # Save excerpts
-    request.session["excerpts"] = [excerpt.to_dict() for excerpt in excerpts]
     
-    # Save new tags
-    new_tags = identify_new_tags(excerpts)
+    Args:
+        request: The HTTP request
+        excerpts: List of non-duplicate ParserExcerpt objects
+        duplicates: List of duplicate ParserExcerpt objects (optional)
+        
+    Returns:
+        tuple: (all_excerpts, new_tags) where all_excerpts is a list of all excerpts 
+        including duplicates with unique children, and new_tags is a set of new tag names
+    """
+    # Combine all excerpts for session storage
+    all_excerpts = list(excerpts)
+    
+    # Include duplicates that have unique children
+    if duplicates:
+        for duplicate in duplicates:
+            # Check if this duplicate has any non-duplicate children
+            has_unique_children = any(not child.is_duplicate for child in duplicate.children)
+            if has_unique_children:
+                all_excerpts.append(duplicate)
+    
+    # Save excerpts
+    request.session["excerpts"] = [excerpt.to_dict() for excerpt in all_excerpts]
+    
+    # Save new tags from all excerpts (including duplicates with unique children)
+    new_tags = identify_new_tags(all_excerpts)
     request.session["new_tags"] = list(new_tags)
+    
+    return all_excerpts, new_tags
 
 def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
     """
@@ -114,6 +155,7 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
         print(f"Excerpt: {parser_excerpt}")
         instance, created = actualize_parser_excerpt(parser_excerpt)
 
+        # Add to the appropriate list based on whether it was created
         if created:
             created_excerpts.append(parser_excerpt)
         else:
@@ -146,6 +188,10 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     excerpt_instance, created = Excerpt.objects.get_or_create(
             content=parser_excerpt.content,)
 
+    # If not created, mark as duplicate
+    if not created:
+        parser_excerpt.is_duplicate = True
+
     # Set excerpt instance attributes
     excerpt_instance.metadata = parser_excerpt.metadata
 
@@ -169,8 +215,31 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
 
     # Process children after parent is created/retrieved
     children = []
+    unique_children_count = 0
+    
+    # First, check if any children already exist in the database
+    child_contents = [child.content for child in parser_excerpt.children]
+    existing_child_contents = set()
+    
+    if child_contents:
+        existing_child_contents = set(Excerpt.objects.filter(
+            content__in=child_contents
+        ).values_list('content', flat=True))
+    
+    # Now process each child
     for child in parser_excerpt.children:
-        child_instance, _ = actualize_parser_excerpt(child)
+        # Check if this child already exists in the database
+        if child.content in existing_child_contents:
+            child.is_duplicate = True
+            
+        child_instance, child_created = actualize_parser_excerpt(child)
+        
+        if child_created:
+            unique_children_count += 1
+        else:
+            # Ensure the is_duplicate flag is set on the child
+            child.is_duplicate = True
+            
         children.append(child_instance)
 
     # Add children

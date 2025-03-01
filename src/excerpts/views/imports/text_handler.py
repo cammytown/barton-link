@@ -16,11 +16,11 @@ def post_import_text(request, default_tags = []):
     # Check for duplicate excerpts
     excerpts, duplicates = utils.check_for_duplicate_excerpts(parser_excerpts)
 
-    # Save excerpts to session
-    utils.save_excerpts_to_session(request, excerpts)
+    # Count non-duplicate excerpts
+    non_duplicate_count = sum(1 for e in excerpts if not e.is_duplicate)
 
-    # Get new tags
-    new_tags = utils.identify_new_tags(excerpts)
+    # Save excerpts to session and get new tags
+    all_excerpts, new_tags = utils.save_excerpts_to_session(request, excerpts, duplicates)
 
     # Present confirmation page
     return render(request, "excerpts/import/_import_confirmation.html", {
@@ -28,4 +28,5 @@ def post_import_text(request, default_tags = []):
         "duplicates": duplicates,
         "default_tags": default_tags,
         "new_tags": new_tags,
+        "non_duplicate_count": non_duplicate_count,
     })

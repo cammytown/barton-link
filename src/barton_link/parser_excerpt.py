@@ -13,6 +13,7 @@ class ParserExcerpt:
         tags (list): List of tags/categories associated with the excerpt
         indent_level (int): The indentation level indicating hierarchy
         children (list): List of child ParserExcerpt objects
+        is_duplicate (bool): Flag indicating if this excerpt is a duplicate
     """
 
     def __init__(self,
@@ -20,7 +21,7 @@ class ParserExcerpt:
                  metadata = None,
                  tags = None,
                  indent_level = 0,
-                 # is_duplicate = False
+                 is_duplicate = False
                  ):
         self.content = content
 
@@ -34,7 +35,7 @@ class ParserExcerpt:
         self.metadata = metadata
 
         self.indent_level = indent_level
-        # self.is_duplicate = is_duplicate
+        self.is_duplicate = is_duplicate
 
     def __repr__(self):
         return "<Excerpt: {}>".format(self.content)
@@ -53,7 +54,7 @@ class ParserExcerpt:
             'tags': self.tags,
             'children': [child.to_dict() for child in self.children],
             'indent_level': self.indent_level,
-            # 'is_duplicate': self.is_duplicate
+            'is_duplicate': self.is_duplicate
         }
 
     @staticmethod
@@ -66,7 +67,7 @@ class ParserExcerpt:
                                 metadata = data['metadata'],
                                 tags = data['tags'],
                                 indent_level = data['indent_level'],
-                                # is_duplicate = data['is_duplicate']
+                                is_duplicate = data.get('is_duplicate', False)
                                 )
 
         excerpt.children = [ParserExcerpt.from_dict(child)

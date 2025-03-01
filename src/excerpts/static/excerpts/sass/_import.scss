@@ -23,3 +23,36 @@
 		width: 100%;
 	}
 }
+
+// Import confirmation styles
+#import-confirmation {
+	.duplicate-excerpt {
+		border-left: 3px solid #cc3333;
+		padding-left: 10px;
+		margin-bottom: 10px;
+		
+		.unique-child-note {
+			color: #339933;
+			font-style: italic;
+			margin: 5px 0;
+		}
+	}
+	
+	.unique-excerpt {
+		border-left: 3px solid #339933;
+		padding-left: 10px;
+		margin-bottom: 10px;
+		
+		.duplicate-child-note {
+			color: #cc3333;
+			font-style: italic;
+			margin: 5px 0;
+		}
+	}
+	
+	.note {
+		font-style: italic;
+		color: #888888;
+		margin: 5px 0;
+	}
+}

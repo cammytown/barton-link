@@ -9,12 +9,13 @@
 		<h3>Duplicate Excerpts</h3>
 
 		<p>
-			These excerpts were encountered twice in the import files.
+			These excerpts already exist in the database. They were not
+			duplicated, but their tags and relationships were updated.
 		</p>
 
 		<ul>
 			{% for excerpt in internal_duplicates %}
-				{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+				{% include 'excerpts/import/_import_duplicate_excerpt.html' %}
 			{% endfor %}
 		</ul>
 	{% endif %}

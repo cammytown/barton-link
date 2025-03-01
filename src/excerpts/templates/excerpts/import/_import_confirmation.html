@@ -27,12 +27,14 @@
 	{% endif %}
 
 	<p>
-		{{ excerpts|length }} excerpts will be imported. Review them below.
+		{{ non_duplicate_count }} new excerpts will be imported. Review them below.
 	</p>
 
 	<ul>
 		{% for excerpt in excerpts %}
-			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+			{% if not excerpt.is_duplicate %}
+				{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+			{% endif %}
 		{% endfor %}
 	</ul>
 
@@ -46,7 +48,7 @@
 
 	<ul>
 		{% for excerpt in duplicates %}
-			{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+			{% include 'excerpts/import/_import_duplicate_excerpt.html' %}
 		{% endfor %}
 	</ul>
 	{% endif %}

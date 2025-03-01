@@ -1,4 +1,4 @@
-<li class="unique-excerpt">
+<li class="duplicate-excerpt">
 	{{ excerpt.content|linebreaksbr }}
 
 	<div class="tags blocks">
@@ -17,15 +17,15 @@
 		<ul>
 		{% for child in excerpt.children %}
 			{% if child.is_duplicate %}
-				<li class="duplicate-child-note">
-					<em>Child excerpt "{{ child.content|truncatechars:50 }}" is a duplicate and will not be imported again.</em>
-				</li>
-			{% else %}
 				{% with excerpt=child %}
-				{% include 'excerpts/import/_import_confirmation_excerpt.html' %}
+				{% include 'excerpts/import/_import_duplicate_excerpt.html' %}
 				{% endwith %}
+			{% else %}
+				<li class="unique-child-note">
+					<em>Child excerpt "{{ child.content|truncatechars:50 }}" is unique and will be imported.</em>
+				</li>
 			{% endif %}
 		{% endfor %}
 		</ul>
 	{% endif %}
-</li>
+</li> 
