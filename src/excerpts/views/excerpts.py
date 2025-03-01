@@ -27,7 +27,8 @@ def search(request):
 
     # Search for excerpts without parents
     excerpts = Excerpt.objects.filter(
-        content__icontains=search, parent=None
+        content__icontains=search,
+        parents__isnull=True
     ).order_by("-id")
 
     # excerpts = Excerpt.objects.order_by("-id")

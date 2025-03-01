@@ -4,21 +4,53 @@ from barton_link.parser_excerpt import ParserExcerpt
 
 def check_for_duplicate_excerpts(excerpts):
     """
-    Check for duplicate excerpts in the database.
+    Check for duplicate excerpts both within the input list and against the database.
     Returns a tuple of (non_duplicates, duplicates).
+    
+    Args:
+        excerpts: List of ParserExcerpt objects to check for duplicates
+        
+    Returns:
+        tuple: (non_duplicates, duplicates) where both are lists of ParserExcerpt objects
     """
     print("Checking for duplicate excerpts...")
-    duplicates = []
+    
+    # Step 1: Check for duplicates within the input list
+    seen_contents = {}
+    internal_duplicates = []
+    unique_excerpts = []
+    
     for excerpt in excerpts:
-        # If excerpt is a duplicate
-        if Excerpt.objects.filter(content=excerpt.content):
-            # Add excerpt to duplicates
-            duplicates.append(excerpt)
-
-    # Remove duplicates from excerpts
-    excerpts = [excerpt for excerpt in excerpts if excerpt not in duplicates]
-
-    return excerpts, duplicates
+        if excerpt.content in seen_contents:
+            internal_duplicates.append(excerpt)
+        else:
+            seen_contents[excerpt.content] = True
+            unique_excerpts.append(excerpt)
+    
+    # Step 2: Check for duplicates against the database
+    # Get all unique content strings
+    unique_contents = list(seen_contents.keys())
+    
+    # Query database once for all potential duplicates
+    #@REVISIT method
+    existing_contents = set(Excerpt.objects.filter(
+        content__in=unique_contents
+    ).values_list('content', flat=True))
+    
+    # Separate duplicates and non-duplicates
+    db_duplicates = []
+    non_duplicates = []
+    
+    for excerpt in unique_excerpts:
+        if excerpt.content in existing_contents:
+            db_duplicates.append(excerpt)
+        else:
+            non_duplicates.append(excerpt)
+    
+    # Combine all duplicates
+    all_duplicates = internal_duplicates + db_duplicates
+    
+    return non_duplicates, all_duplicates
 
 def identify_new_tags(excerpts):
     """
