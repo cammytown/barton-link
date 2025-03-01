@@ -7,6 +7,13 @@ def check_for_duplicate_excerpts(excerpts):
     Check for duplicate excerpts both within the input list and against the database.
     Returns a tuple of (non_duplicates, duplicates).
     
+    Note: Even if a parent excerpt is a duplicate, its children might be unique.
+    The actualize_parser_excerpt function will handle adding unique children to
+    existing parent excerpts.
+    
+    IMPORTANT: This function only identifies top-level duplicates. If a duplicate has
+    children, it should still be processed to ensure its unique children are saved.
+    
     Args:
         excerpts: List of ParserExcerpt objects to check for duplicates
         
@@ -21,15 +28,19 @@ def check_for_duplicate_excerpts(excerpts):
     unique_excerpts = []
     
     for excerpt in excerpts:
-        if excerpt.content in seen_contents:
+        # If this excerpt has children, we need to process it regardless
+        # to ensure its unique children are saved
+        if excerpt.children:
+            unique_excerpts.append(excerpt)
+        elif excerpt.content in seen_contents:
             internal_duplicates.append(excerpt)
         else:
             seen_contents[excerpt.content] = True
             unique_excerpts.append(excerpt)
     
     # Step 2: Check for duplicates against the database
-    # Get all unique content strings
-    unique_contents = list(seen_contents.keys())
+    # Get all unique content strings from excerpts without children
+    unique_contents = [e.content for e in unique_excerpts if not e.children]
     
     # Query database once for all potential duplicates
     #@REVISIT method
@@ -42,7 +53,11 @@ def check_for_duplicate_excerpts(excerpts):
     non_duplicates = []
     
     for excerpt in unique_excerpts:
-        if excerpt.content in existing_contents:
+        # If this excerpt has children, we need to process it regardless
+        # to ensure its unique children are saved
+        if excerpt.children:
+            non_duplicates.append(excerpt)
+        elif excerpt.content in existing_contents:
             db_duplicates.append(excerpt)
         else:
             non_duplicates.append(excerpt)
@@ -84,9 +99,15 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
     """
     Add excerpts from parser excerpt array.
     Returns a tuple of (created_excerpts, duplicate_excerpts).
+    
+    Both lists contain the original ParserExcerpt objects, not the Django model instances.
+    This ensures consistency with what the templates expect.
+    
+    Note: This function processes all excerpts, including duplicates with children,
+    to ensure that unique children of duplicate parents are saved.
     """
-    excerpts = []
-    duplicates = []
+    created_excerpts = []
+    duplicate_excerpts = []
 
     for index, parser_excerpt in enumerate(parser_excerpts):
         print(f"Adding excerpt {index + 1} of {len(parser_excerpts)}...")
@@ -94,11 +115,11 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
         instance, created = actualize_parser_excerpt(parser_excerpt)
 
         if created:
-            excerpts.append(instance)
+            created_excerpts.append(parser_excerpt)
         else:
-            duplicates.append(instance)
+            duplicate_excerpts.append(parser_excerpt)
 
-    return excerpts, duplicates
+    return created_excerpts, duplicate_excerpts
 
 def get_or_create_default_tag_type():
     """
@@ -120,13 +141,8 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
     """
     print(f"Adding excerpt: {parser_excerpt}")
 
-    # Add children
-    children = []
-    for child in parser_excerpt.children:
-        child_instance, _ = actualize_parser_excerpt(child)
-        children.append(child_instance)
-
-    # Create excerpt instance or get existing identical instance
+    # Create excerpt instance or get existing identical instance first
+    # This way we know if we're dealing with an existing excerpt before processing children
     excerpt_instance, created = Excerpt.objects.get_or_create(
             content=parser_excerpt.content,)
 
@@ -150,6 +166,12 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
 
         # Add tag to excerpt
         excerpt_instance.tags.add(tag_instance)
+
+    # Process children after parent is created/retrieved
+    children = []
+    for child in parser_excerpt.children:
+        child_instance, _ = actualize_parser_excerpt(child)
+        children.append(child_instance)
 
     # Add children
     for child in children:
