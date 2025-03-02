@@ -1,0 +1,52 @@
+{% if datasets %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dataset in datasets %}
+            <tr {% if active_dataset_info and active_dataset_info.id == dataset.id %}class="table-active"{% endif %}>
+                <td>{{ dataset.name }}</td>
+                <td>{{ dataset.description|truncatechars:50 }}</td>
+                <td>{{ dataset.created|date:"M d, Y" }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'dataset' dataset.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="{% url 'edit_dataset' dataset.id %}" 
+                           class="btn btn-sm btn-outline-secondary"
+                           hx-get="{% url 'edit_dataset' dataset.id %}"
+                           hx-target="#dataset-content"
+                           hx-push-url="true">Edit</a>
+                        <a href="{% url 'delete_dataset' dataset.id %}" 
+                           class="btn btn-sm btn-outline-danger"
+                           hx-get="{% url 'delete_dataset' dataset.id %}"
+                           hx-target="#dataset-content"
+                           hx-push-url="true">Delete</a>
+                        {% if not active_dataset_info or active_dataset_info.id != dataset.id %}
+                        <a href="{% url 'set_active_dataset' dataset.id %}" 
+                           class="btn btn-sm btn-outline-success"
+                           hx-get="{% url 'set_active_dataset' dataset.id %}"
+                           hx-target="#dataset-list"
+                           hx-swap="outerHTML">Set Active</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <p>No datasets found. <a href="{% url 'create_dataset' %}" 
+                            hx-get="{% url 'create_dataset' %}"
+                            hx-target="#dataset-content"
+                            hx-push-url="true">Create your first dataset</a>.</p>
+</div>
+{% endif %} 

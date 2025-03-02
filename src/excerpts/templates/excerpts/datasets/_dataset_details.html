@@ -1,0 +1,15 @@
+<div class="card mb-4">
+    <div class="card-header">
+        <h3>{{ dataset.name }}</h3>
+    </div>
+    <div class="card-body">
+        {% if dataset.description %}
+        <p>{{ dataset.description }}</p>
+        {% else %}
+        <p class="text-muted">No description provided.</p>
+        {% endif %}
+        <div class="mt-2">
+            <small class="text-muted">Created: {{ dataset.created|date:"M d, Y" }}</small>
+        </div>
+    </div>
+</div> 

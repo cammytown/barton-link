@@ -10,12 +10,21 @@ excerpt_patterns = [
 ]
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    # Make excerpts search the default landing page
+    path("", views.search, name="index"),
     path("search", views.search, name="search"),
 
     path("excerpt/<int:excerpt_id>", views.excerpt, name="excerpt"),
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
     path("excerpt/create", views.create_excerpt, name="create_excerpt"),
+
+    # Dataset routes
+    path("datasets", views.datasets.index, name="datasets"),
+    path("datasets/create", views.datasets.create, name="create_dataset"),
+    path("datasets/<int:dataset_id>", views.datasets.view, name="dataset"),
+    path("datasets/<int:dataset_id>/edit", views.datasets.edit, name="edit_dataset"),
+    path("datasets/<int:dataset_id>/delete", views.datasets.delete, name="delete_dataset"),
+    path("datasets/<int:dataset_id>/set-active", views.datasets.set_active, name="set_active_dataset"),
 
     path("entities", views.entities, name="entities"),
     path("entities/create", views.create_entity, name="create_entity"),

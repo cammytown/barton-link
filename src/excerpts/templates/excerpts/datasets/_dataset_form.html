@@ -1,0 +1,26 @@
+<div class="card">
+    <div class="card-header">
+        <h2>Create New Dataset</h2>
+    </div>
+    <div class="card-body">
+        <form method="post" hx-post="{% url 'create_dataset' %}" hx-target="#dataset-content">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'datasets' %}" 
+                   class="btn btn-secondary"
+                   hx-get="{% url 'datasets' %}"
+                   hx-target="#dataset-content"
+                   hx-push-url="true">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Dataset</button>
+            </div>
+        </form>
+    </div>
+</div> 

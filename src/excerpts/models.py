@@ -20,6 +20,22 @@ class SoftDeleteModel(models.Model):
     class Meta:
         abstract = True
 
+class Dataset(SoftDeleteModel):
+    """
+    Represents a collection of excerpts that can be managed separately.
+    Users can switch between datasets to work with different sets of excerpts.
+    """
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+        
+    class Meta:
+        ordering = ['name']
+
 class TagType(models.Model):
     name = models.TextField()
     description = models.TextField()
@@ -118,6 +134,13 @@ class ExcerptRelationship(models.Model):
 
 class Excerpt(SoftDeleteModel):
     content = models.TextField()
+    
+    # Add dataset field with cascade on delete
+    dataset = models.ForeignKey(Dataset, 
+                               on_delete=models.CASCADE,
+                               related_name='excerpts',
+                               null=True, 
+                               blank=True)
 
     tags = models.ManyToManyField(Tag,
                                   through='ExcerptTag',

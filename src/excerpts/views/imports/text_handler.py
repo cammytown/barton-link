@@ -19,8 +19,8 @@ def post_import_text(request, default_tags = []):
     # Count non-duplicate excerpts
     non_duplicate_count = sum(1 for e in excerpts if not e.is_duplicate)
 
-    # Save excerpts to session and get new tags
-    all_excerpts, new_tags = utils.save_excerpts_to_session(request, excerpts, duplicates)
+    # Save excerpts to cache instead of session and get a preview ID
+    preview_id, all_excerpts, new_tags = utils.save_excerpts_to_cache(excerpts, duplicates)
 
     # Present confirmation page
     return render(request, "excerpts/import/_import_confirmation.html", {
@@ -29,4 +29,5 @@ def post_import_text(request, default_tags = []):
         "default_tags": default_tags,
         "new_tags": new_tags,
         "non_duplicate_count": non_duplicate_count,
+        "preview_id": preview_id,  # Pass the preview ID to the template
     })

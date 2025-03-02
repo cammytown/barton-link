@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import render
-from ...models import Tag, TagType
+from ...models import Tag, TagType, Dataset
+from ...utils import get_active_dataset, get_active_dataset_info
 from barton_link.parser_excerpt import ParserExcerpt
 from . import utils
 from . import file_handler
@@ -18,10 +19,14 @@ def import_excerpts(request):
         case "GET":
             tags = Tag.objects.all()
             tag_types = TagType.objects.all()
+            
+            # Get active dataset info without database query
+            active_dataset_info = get_active_dataset_info(request)
 
             return render(request, "excerpts/import/import_page.html", {
                 "tags": tags,
                 "tag_types": tag_types,
+                "active_dataset_info": active_dataset_info,
             })
 
         case "POST":
@@ -91,31 +96,44 @@ def import_excerpts_confirm(request):
     """
     Confirm import excerpts.
     """
-    # Get excerpts from session
-    excerpts = request.session["excerpts"]
-    new_tags = request.session.get("new_tags", [])
+    # Get the preview ID from the form
+    preview_id = request.POST.get("preview_id")
+    if not preview_id:
+        return HttpResponseBadRequest(json.dumps({
+            "error": "No preview ID provided.",
+        }))
+    
+    # Retrieve excerpts from cache
+    excerpts, new_tags = utils.retrieve_excerpts_from_cache(preview_id)
+    if not excerpts:
+        return HttpResponseBadRequest(json.dumps({
+            "error": "Import preview not found or expired.",
+        }))
 
     # Get selected tags to create
     tags_to_create = set(request.POST.getlist("create_tags[]"))
 
     # Convert to ParserExcerpt
-    parser_excerpts = [ParserExcerpt.from_dict(excerpt) for excerpt in excerpts]
+    parser_excerpts = excerpts  # Already converted by retrieve_excerpts_from_cache
 
     # Filter out tags that shouldn't be created
     for excerpt in parser_excerpts:
         excerpt.tags = [tag for tag in excerpt.tags if tag not in new_tags or tag in tags_to_create]
 
+    # We need the actual dataset object here for the foreign key relationship
+    active_dataset = get_active_dataset(request, fetch_object=True)
+
     print("Adding excerpts...")
     # Create database Excerpt from ParserExcerpt
-    created_excerpts, duplicate_excerpts = utils.actualize_parser_excerpts(parser_excerpts)
+    created_excerpts, duplicate_excerpts = utils.actualize_parser_excerpts(parser_excerpts, active_dataset)
 
-    # Remove excerpts from session
-    del request.session["excerpts"]
-    if "new_tags" in request.session:
-        del request.session["new_tags"]
+    # Remove excerpts from cache
+    utils.delete_excerpts_from_cache(preview_id)
 
-    # Return import success page
+    # Return import success page with dataset info
+    active_dataset_info = get_active_dataset_info(request)
     return render(request, "excerpts/import/_import_success.html", {
         "excerpts": created_excerpts,
         "internal_duplicates": duplicate_excerpts,
+        "active_dataset_info": active_dataset_info,
     })

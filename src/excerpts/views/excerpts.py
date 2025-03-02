@@ -12,7 +12,9 @@ from ..models import \
         ExcerptSimilarity,\
         Tag,\
         TagType,\
-        Entity
+        Entity, \
+        Dataset
+from ..utils import get_active_dataset, get_active_dataset_info
 
 
 def index(request):
@@ -24,12 +26,24 @@ def search(request):
 
     # Extract search field and filters
     search = request.GET.get("search", "")
+    
+    # For search, we need the actual Dataset object to filter the query
+    active_dataset = get_active_dataset(request, fetch_object=True)
+    # Keep track of dataset info for the UI
+    active_dataset_info = get_active_dataset_info(request)
 
-    # Search for excerpts without parents
-    excerpts = Excerpt.objects.filter(
-        content__icontains=search,
-        parents__isnull=True
-    ).order_by("-id")
+    # Base query for excerpts without parents
+    query = {
+        'content__icontains': search,
+        'parents__isnull': True
+    }
+    
+    # If active dataset is set, filter by it
+    if active_dataset:
+        query['dataset'] = active_dataset
+    
+    # Search for excerpts
+    excerpts = Excerpt.objects.filter(**query).order_by("-id")
 
     # excerpts = Excerpt.objects.order_by("-id")
 
@@ -63,6 +77,7 @@ def search(request):
         "page_sizes": [10, 25, 50, 100],
         "page_size": page_size,
         "search": search,
+        "active_dataset_info": active_dataset_info,
     }
 
     # If HTMX request
@@ -143,9 +158,29 @@ def create_excerpt(request):
 
         # Extract excerpt text
         excerpt_text = request_data.get("excerpt_content")
+        
+        # Get dataset_id from request
+        dataset_id = request.GET.get("dataset")
+        dataset = None
+        
+        # If no dataset specified in request, try to get active dataset
+        if not dataset_id:
+            active_dataset_info = get_active_dataset_info(request)
+            if active_dataset_info:
+                # Need to fetch the actual object for the foreign key relationship
+                dataset = Dataset.objects.get(id=active_dataset_info['id'])
+        else:
+            # If dataset_id is provided, get the dataset
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+            except Dataset.DoesNotExist:
+                pass
 
-        # Create new excerpt
-        excerpt = Excerpt.objects.create(content=excerpt_text)
+        # Create new excerpt with dataset if available
+        excerpt = Excerpt.objects.create(
+            content=excerpt_text,
+            dataset=dataset
+        )
 
         # If HTMX request
         if request.headers.get("HX-Request") == "true":
@@ -154,7 +189,12 @@ def create_excerpt(request):
 
             # Force page 1 to show the new excerpt
             request.GET['page'] = 1
-            return search(request)
+            
+            # If dataset is specified, redirect to dataset view
+            if dataset:
+                return redirect("dataset", dataset_id=dataset.id)
+            else:
+                return search(request)
         # If browser request
         else:
             return redirect("excerpt", excerpt_id=excerpt.id)

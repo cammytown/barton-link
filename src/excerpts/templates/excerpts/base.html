@@ -29,10 +29,18 @@
 					<!-- <li><a href="{% url 'index' %}">Concepts</a></li> -->
 					<li><a href="{% url 'tags' %}">Tags</a></li>
 					| 
-					<li><a href="{% url 'index' %}">Stories</a></li>
+					<li><a href="{% url 'datasets' %}">Datasets</a></li>
 					<li><a href="{% url 'tools' %}">Tools</a></li>
 				</ul>
 			</nav>
+			
+			{% if request.session.active_dataset_id %}
+			<div id="active-dataset">
+				{% with dataset_id=request.session.active_dataset_id %}
+				<span class="badge bg-info">Active Dataset: <a href="{% url 'dataset' dataset_id %}" class="text-white">{{ request.session.active_dataset_name }}</a></span>
+				{% endwith %}
+			</div>
+			{% endif %}
 		</header>
 
 		<div id="content" class="{% block content_class %}{% endblock %}">

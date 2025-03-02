@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from ...models import Excerpt, Tag, TagType
 from barton_link.parser_excerpt import ParserExcerpt
+import uuid
+from django.core.cache import cache
 
 def check_for_duplicate_excerpts(excerpts):
     """
@@ -102,21 +104,21 @@ def identify_new_tags(excerpts):
     # Return tags that don't exist in database
     return all_tags - existing_tags
 
-def save_excerpts_to_session(request, excerpts, duplicates=None):
+def save_excerpts_to_cache(excerpts, duplicates=None):
     """
-    Save excerpts to session for later confirmation.
+    Save excerpts to cache for later confirmation.
     Also saves information about new tags that would be created.
     
     Args:
-        request: The HTTP request
         excerpts: List of non-duplicate ParserExcerpt objects
         duplicates: List of duplicate ParserExcerpt objects (optional)
         
     Returns:
-        tuple: (all_excerpts, new_tags) where all_excerpts is a list of all excerpts 
-        including duplicates with unique children, and new_tags is a set of new tag names
+        tuple: (preview_id, all_excerpts, new_tags) where preview_id is a unique identifier,
+        all_excerpts is a list of all excerpts including duplicates with unique children, 
+        and new_tags is a set of new tag names
     """
-    # Combine all excerpts for session storage
+    # Combine all excerpts for cache storage
     all_excerpts = list(excerpts)
     
     # Include duplicates that have unique children
@@ -127,16 +129,53 @@ def save_excerpts_to_session(request, excerpts, duplicates=None):
             if has_unique_children:
                 all_excerpts.append(duplicate)
     
-    # Save excerpts
-    request.session["excerpts"] = [excerpt.to_dict() for excerpt in all_excerpts]
+    # Generate a unique ID for this import preview
+    preview_id = str(uuid.uuid4())
     
-    # Save new tags from all excerpts (including duplicates with unique children)
+    # Identify new tags from all excerpts
     new_tags = identify_new_tags(all_excerpts)
-    request.session["new_tags"] = list(new_tags)
     
-    return all_excerpts, new_tags
+    # Store in cache with expiration (24 hours)
+    cache_data = {
+        'excerpts': [excerpt.to_dict() for excerpt in all_excerpts],
+        'new_tags': list(new_tags)
+    }
+    cache.set(f'import_preview:{preview_id}', cache_data, timeout=86400)  # 24 hours
+    
+    return preview_id, all_excerpts, new_tags
 
-def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
+def retrieve_excerpts_from_cache(preview_id):
+    """
+    Retrieve excerpts data from cache using the preview_id.
+    
+    Args:
+        preview_id: The unique identifier for the import preview
+        
+    Returns:
+        tuple: (excerpts, new_tags) where excerpts is a list of ParserExcerpt objects
+        and new_tags is a list of new tag names. Returns (None, None) if not found.
+    """
+    # Get data from cache
+    cache_data = cache.get(f'import_preview:{preview_id}')
+    if not cache_data:
+        return None, None
+    
+    # Convert back to ParserExcerpt objects
+    excerpts = [ParserExcerpt.from_dict(exc) for exc in cache_data['excerpts']]
+    new_tags = cache_data['new_tags']
+    
+    return excerpts, new_tags
+
+def delete_excerpts_from_cache(preview_id):
+    """
+    Delete excerpts data from cache.
+    
+    Args:
+        preview_id: The unique identifier for the import preview
+    """
+    cache.delete(f'import_preview:{preview_id}')
+
+def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt], active_dataset=None):
     """
     Add excerpts from parser excerpt array.
     Returns a tuple of (created_excerpts, duplicate_excerpts).
@@ -146,6 +185,10 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
     
     Note: This function processes all excerpts, including duplicates with children,
     to ensure that unique children of duplicate parents are saved.
+    
+    Args:
+        parser_excerpts: List of ParserExcerpt objects to add
+        active_dataset: The active dataset to assign the excerpts to (optional)
     """
     created_excerpts = []
     duplicate_excerpts = []
@@ -153,7 +196,7 @@ def actualize_parser_excerpts(parser_excerpts: list[ParserExcerpt]):
     for index, parser_excerpt in enumerate(parser_excerpts):
         print(f"Adding excerpt {index + 1} of {len(parser_excerpts)}...")
         print(f"Excerpt: {parser_excerpt}")
-        instance, created = actualize_parser_excerpt(parser_excerpt)
+        instance, created = actualize_parser_excerpt(parser_excerpt, active_dataset)
 
         # Add to the appropriate list based on whether it was created
         if created:
@@ -176,10 +219,14 @@ def get_or_create_default_tag_type():
     )
     return default_tag_type
 
-def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
+def actualize_parser_excerpt(parser_excerpt: ParserExcerpt, active_dataset=None):
     """
     Add excerpt from parser excerpt.
     Returns a tuple of (excerpt_instance, was_created).
+    
+    Args:
+        parser_excerpt: The ParserExcerpt object to add
+        active_dataset: The active dataset to assign the excerpt to (optional)
     """
     print(f"Adding excerpt: {parser_excerpt}")
 
@@ -194,6 +241,10 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
 
     # Set excerpt instance attributes
     excerpt_instance.metadata = parser_excerpt.metadata
+    
+    # Assign to active dataset if provided and excerpt is newly created or has no dataset
+    if active_dataset and (created or excerpt_instance.dataset is None):
+        excerpt_instance.dataset = active_dataset
 
     # Save excerpt instance (create id)
     excerpt_instance.save()
@@ -232,7 +283,7 @@ def actualize_parser_excerpt(parser_excerpt: ParserExcerpt):
         if child.content in existing_child_contents:
             child.is_duplicate = True
             
-        child_instance, child_created = actualize_parser_excerpt(child)
+        child_instance, child_created = actualize_parser_excerpt(child, active_dataset)
         
         if child_created:
             unique_children_count += 1

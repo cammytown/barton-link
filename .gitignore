@@ -18,3 +18,5 @@ debug/
 *.sqlite3
 *.sqlite3-journal
 *.sqlite3.bk
+
+debug.log

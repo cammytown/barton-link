@@ -3,6 +3,13 @@
 
 	<p>
 		Successfully imported {{ excerpts|length }} excerpts.
+		{% if active_dataset_info %}
+		<br>
+		<span class="badge bg-info">Imported to dataset: {{ active_dataset_info.name }}</span>
+		{% else %}
+		<br>
+		<span class="badge bg-warning">No dataset selected. Excerpts were imported without a dataset assignment.</span>
+		{% endif %}
 	</p>
 
 	{% if internal_duplicates %}
@@ -19,4 +26,11 @@
 			{% endfor %}
 		</ul>
 	{% endif %}
+	
+	<div class="mt-4">
+		<a href="{% url 'index' %}" class="btn btn-primary">View Excerpts</a>
+		{% if active_dataset_info %}
+		<a href="{% url 'dataset' active_dataset_info.id %}" class="btn btn-secondary">View Dataset</a>
+		{% endif %}
+	</div>
 </div>

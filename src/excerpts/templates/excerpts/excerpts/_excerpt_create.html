@@ -6,7 +6,13 @@
 >
 	{% csrf_token %}
 
-	<input type="text" name="excerpt_content" placeholder="Add an excerpt" />
+	<input type="text" name="excerpt_content" placeholder="Add an excerpt{% if active_dataset_info %} to {{ active_dataset_info.name }}{% endif %}" />
 
 	<button type="submit">Add</button>
+	
+	{% if not active_dataset_info %}
+	<div class="alert alert-warning mt-2">
+		<small>No active dataset selected. <a href="{% url 'datasets' %}">Select or create a dataset</a> to organize your excerpts.</small>
+	</div>
+	{% endif %}
 </form>

@@ -3,6 +3,19 @@
 {% block title %}Import Excerpts{% endblock %}
 
 {% block content %}
+<h1>Import Excerpts</h1>
+
+{% if active_dataset_info %}
+<div class="alert alert-info mb-4">
+    <p>Excerpts will be imported to dataset: <strong>{{ active_dataset_info.name }}</strong></p>
+</div>
+{% else %}
+<div class="alert alert-warning mb-4">
+    <p>No active dataset selected. Excerpts will be imported without a dataset assignment.</p>
+    <p><a href="{% url 'datasets' %}" class="btn btn-sm btn-primary">Select or create a dataset</a></p>
+</div>
+{% endif %}
+
 <form
 	hx-post="/excerpts/import"
 	hx-encoding="multipart/form-data"
