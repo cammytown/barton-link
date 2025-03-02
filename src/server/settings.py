@@ -127,6 +127,16 @@ COMPRESS_CSS_FILTERS = [
 LIBSASS_OUTPUT_STYLE = 'compressed'
 LIBSASS_SOURCE_MAPS = True
 
+# Cache settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'barton-link-cache',
+        'TIMEOUT': 86400,  # 24 hours default timeout
+    }
+}
+print("Using local memory cache backend")
+
 # Development settings for Django Compressor
 if DEBUG:
     COMPRESS_ENABLED = False  # Disable compression in debug mode

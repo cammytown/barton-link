@@ -91,15 +91,25 @@ def import_excerpts_confirm(request):
     """
     Confirm import excerpts.
     """
-    # Get excerpts from session
-    excerpts = request.session["excerpts"]
-    new_tags = request.session.get("new_tags", [])
+    # Get the preview ID from the form
+    preview_id = request.POST.get("preview_id")
+    if not preview_id:
+        return HttpResponseBadRequest(json.dumps({
+            "error": "No preview ID provided."
+        }))
+    
+    # Retrieve excerpts from cache
+    excerpts, new_tags = utils.retrieve_excerpts_from_cache(preview_id)
+    if not excerpts:
+        return HttpResponseBadRequest(json.dumps({
+            "error": "Import preview not found or expired."
+        }))
 
     # Get selected tags to create
     tags_to_create = set(request.POST.getlist("create_tags[]"))
 
     # Convert to ParserExcerpt
-    parser_excerpts = [ParserExcerpt.from_dict(excerpt) for excerpt in excerpts]
+    parser_excerpts = excerpts  # Already converted by retrieve_excerpts_from_cache
 
     # Filter out tags that shouldn't be created
     for excerpt in parser_excerpts:
@@ -109,10 +119,8 @@ def import_excerpts_confirm(request):
     # Create database Excerpt from ParserExcerpt
     created_excerpts, duplicate_excerpts = utils.actualize_parser_excerpts(parser_excerpts)
 
-    # Remove excerpts from session
-    del request.session["excerpts"]
-    if "new_tags" in request.session:
-        del request.session["new_tags"]
+    # Remove excerpts from cache
+    utils.delete_excerpts_from_cache(preview_id)
 
     # Return import success page
     return render(request, "excerpts/import/_import_success.html", {

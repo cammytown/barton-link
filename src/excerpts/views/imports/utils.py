@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from ...models import Excerpt, Tag, TagType
 from barton_link.parser_excerpt import ParserExcerpt
+import uuid
+from django.core.cache import cache
 
 def check_for_duplicate_excerpts(excerpts):
     """
@@ -101,6 +103,77 @@ def identify_new_tags(excerpts):
     
     # Return tags that don't exist in database
     return all_tags - existing_tags
+
+def save_excerpts_to_cache(excerpts, duplicates=None):
+    """
+    Save excerpts to cache for later confirmation.
+    Also saves information about new tags that would be created.
+    
+    Args:
+        excerpts: List of non-duplicate ParserExcerpt objects
+        duplicates: List of duplicate ParserExcerpt objects (optional)
+        
+    Returns:
+        tuple: (preview_id, all_excerpts, new_tags) where preview_id is a unique identifier,
+        all_excerpts is a list of all excerpts including duplicates with unique children,
+        and new_tags is a set of new tag names
+    """
+    # Combine all excerpts for cache storage
+    all_excerpts = list(excerpts)
+    
+    # Include duplicates that have unique children
+    if duplicates:
+        for duplicate in duplicates:
+            # Check if this duplicate has any non-duplicate children
+            has_unique_children = any(not child.is_duplicate for child in duplicate.children)
+            if has_unique_children:
+                all_excerpts.append(duplicate)
+    
+    # Generate a unique ID for this import preview
+    preview_id = str(uuid.uuid4())
+    
+    # Identify new tags from all excerpts
+    new_tags = identify_new_tags(all_excerpts)
+    
+    # Store in cache with expiration (24 hours)
+    cache_data = {
+        'excerpts': [excerpt.to_dict() for excerpt in all_excerpts],
+        'new_tags': list(new_tags)
+    }
+    cache.set(f'import_preview:{preview_id}', cache_data, timeout=86400)  # 24 hours
+    
+    return preview_id, all_excerpts, new_tags
+
+def retrieve_excerpts_from_cache(preview_id):
+    """
+    Retrieve excerpts data from cache using the preview_id.
+    
+    Args:
+        preview_id: The unique identifier for the import preview
+        
+    Returns:
+        tuple: (excerpts, new_tags) where excerpts is a list of ParserExcerpt objects
+        and new_tags is a list of new tag names. Returns (None, None) if not found.
+    """
+    # Get data from cache
+    cache_data = cache.get(f'import_preview:{preview_id}')
+    if not cache_data:
+        return None, None
+    
+    # Convert back to ParserExcerpt objects
+    excerpts = [ParserExcerpt.from_dict(exc) for exc in cache_data['excerpts']]
+    new_tags = cache_data['new_tags']
+    
+    return excerpts, new_tags
+
+def delete_excerpts_from_cache(preview_id):
+    """
+    Delete excerpts data from cache.
+    
+    Args:
+        preview_id: The unique identifier for the import preview
+    """
+    cache.delete(f'import_preview:{preview_id}')
 
 def save_excerpts_to_session(request, excerpts, duplicates=None):
     """
