@@ -2,7 +2,7 @@
 
 {% block title %}{{ excerpt.content }}{% endblock %}
 
-{% block content_class %}excerpt_page{% endblock %}
+{% block content_class %}excerpt-detail{% endblock %}
 
 {% block content %}
 
@@ -25,6 +25,9 @@
 
 <h3>Similar Excerpts</h3>
 {% include "excerpts/excerpts/_excerpt_similar.html" %}
+
+<h3>Relationships</h3>
+{% include "excerpts/excerpts/_excerpt_relationships.html" %}
 
 <h3>Controls</h3>
 <div class="controls">

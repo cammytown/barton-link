@@ -1,0 +1,156 @@
+<div class="relationship-form">
+    <h4>Add {{ rel_type|title }} Relationship</h4>
+    
+    {% if rel_type == 'entity-entity' %}
+        <form hx-post="{% url 'entity_relationship' rel_type entity.id %}" 
+              hx-target="#relationship-content">
+            {% csrf_token %}
+            <input type="hidden" name="entity_a_id" value="{{ entity.id }}">
+            
+            <div class="form-group">
+                <label for="relationship_type_id">Relationship Type</label>
+                <select name="relationship_type_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='entity_a_id'],[name='entity_b_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select a relationship type</option>
+                    {% for rt in relationship_types %}
+                        <option value="{{ rt.id }}">{{ rt.name }} - {{ rt.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="entity_b_id">Related Entity</label>
+                <select name="entity_b_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='entity_a_id'],[name='relationship_type_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select an entity</option>
+                    {% for related_entity in available_entities %}
+                        <option value="{{ related_entity.id }}">{{ related_entity.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Relationship Preview Container -->
+            <div id="relationship-preview-container"></div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Create Relationship</button>
+                <button type="button" 
+                        hx-get="{% url 'entity_relationship' rel_type entity.id %}" 
+                        hx-target="#relationship-content"
+                        class="btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    
+    {% elif rel_type == 'entity-excerpt' %}
+        <form hx-post="{% url 'relationship' rel_type excerpt.id %}" 
+              hx-target="#relationship-content">
+            {% csrf_token %}
+            <input type="hidden" name="excerpt_id" value="{{ excerpt.id }}">
+            
+            <div class="form-group">
+                <label for="relationship_type_id">Relationship Type</label>
+                <select name="relationship_type_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='excerpt_id'],[name='entity_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select a relationship type</option>
+                    {% for rt in relationship_types %}
+                        <option value="{{ rt.id }}">{{ rt.name }} - {{ rt.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="entity_id">Entity</label>
+                <select name="entity_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='excerpt_id'],[name='relationship_type_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select an entity</option>
+                    {% for entity in available_entities %}
+                        <option value="{{ entity.id }}">{{ entity.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Relationship Preview Container -->
+            <div id="relationship-preview-container"></div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Create Relationship</button>
+                <button type="button" 
+                        hx-get="{% url 'relationship' rel_type excerpt.id %}" 
+                        hx-target="#relationship-content"
+                        class="btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    
+    {% elif rel_type == 'excerpt-excerpt' %}
+        <form id="excerpt-relationship-form"
+              hx-post="{% url 'relationship' rel_type excerpt.id %}" 
+              hx-target="#relationship-content">
+            {% csrf_token %}
+            <input type="hidden" name="source_excerpt_id" value="{{ excerpt.id }}">
+            <!-- Direction is set by the preview component -->
+            
+            <div class="form-group">
+                <label for="relationship_type_id">Relationship Type</label>
+                <select name="relationship_type_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='source_excerpt_id'],[name='target_excerpt_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select a relationship type</option>
+                    {% for rt in relationship_types %}
+                        <option value="{{ rt.id }}">{{ rt.name }} - {{ rt.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="target_excerpt_id">Related Excerpt</label>
+                <select name="target_excerpt_id" required
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='source_excerpt_id'],[name='relationship_type_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}"}'
+                        hx-trigger="change">
+                    <option value="">Select an excerpt</option>
+                    {% for related_excerpt in available_excerpts %}
+                        <option value="{{ related_excerpt.id }}">{{ related_excerpt.content|truncatechars:50 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Relationship Preview Container -->
+            <div id="relationship-preview-container"></div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Create Relationship</button>
+                <button type="button" 
+                        hx-get="{% url 'relationship' rel_type excerpt.id %}" 
+                        hx-target="#relationship-content"
+                        class="btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div> 

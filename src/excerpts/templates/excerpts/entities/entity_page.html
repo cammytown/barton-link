@@ -1,15 +1,28 @@
 {% extends "excerpts/base.html" %}
 {% block title %}{{ entity.name }}{% endblock %}
-{% block content_class %}tag{% endblock %}
+{% block content_class %}entity-detail{% endblock %}
 
 {% block content %}
 
 {% include "excerpts/tags/_entity_header.html" %}
 
-<p><a href="/excerpts/">Back to all excerpts</a></p>
+<!-- Entity Relationships Section -->
+<div class="entity-relationships">
+    <h3>Entity Relationships</h3>
+    <div id="relationship-content">
+        <!-- Relationships loaded server-side -->
+        {% include "excerpts/relationships/_relationship_list.html" %}
+    </div>
+</div>
 
-{% include "excerpts/excerpts/_excerpt_list.html" %}
+<!-- Entity-Excerpt Relationships Section -->
+{% if excerpts %}
+<div class="excerpt-relationships">
+    <h3>Related Excerpts</h3>
+    {% include "excerpts/excerpts/_excerpt_list.html" %}
+</div>
+{% endif %}
 
-<a href="/excerpts/">Back to all excerpts</a>
+<p><a href="/entities/">Back to all entities</a> | <a href="/excerpts/">Back to all excerpts</a></p>
 
 {% endblock %}

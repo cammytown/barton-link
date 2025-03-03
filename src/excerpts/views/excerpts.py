@@ -12,7 +12,8 @@ from ..models import \
         ExcerptSimilarity,\
         Tag,\
         TagType,\
-        Entity
+        Entity,\
+        ExcerptRelationship
 
 
 def index(request):
@@ -84,10 +85,17 @@ def excerpt(request, excerpt_id):
 def excerpt_html(request, excerpt_id):
     excerpt = Excerpt.objects.get(id=excerpt_id)
 
+    # Get excerpt-excerpt relationships for initial display
+    parent_relationships = ExcerptRelationship.objects.filter(parent=excerpt)
+    child_relationships = ExcerptRelationship.objects.filter(child=excerpt)
+    excerpt_relationships = list(parent_relationships) + list(child_relationships)
+
     # If GET request
     if request.method == "GET":
         return render(request, "excerpts/excerpts/excerpt_page.html", {
             "excerpt": excerpt,
+            "rel_type": "excerpt-excerpt",
+            "excerpt_relationships": excerpt_relationships,
         })
 
     # If DELETE request

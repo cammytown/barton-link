@@ -74,7 +74,7 @@ def setup_default_relationship_types(force=False):
         
         # Excerpt-to-Excerpt specific relationships
         {
-            "name": "Responds",
+            "name": "Responds to",
             "description": "One excerpt responds to another",
             "applicable_contexts": RelationshipType.EXCERPT_EXCERPT
         },

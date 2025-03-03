@@ -1,0 +1,6 @@
+<div class="entity-item">
+    <h3>
+        <a href="{% url 'entity_detail' entity.id %}">{{ entity.name }}</a>
+    </h3>
+    <p class="entity-description">{{ entity.description|truncatewords:20 }}</p>
+</div> 

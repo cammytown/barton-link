@@ -1,0 +1,78 @@
+<!-- Relationship Direction Preview -->
+<div class="relationship-preview">
+    <h5>Relationship Preview</h5>
+    
+    {% if rel_type == 'entity-entity' %}
+        <div class="preview-container">
+            <div class="preview-entity">{{ entity.name }}</div>
+            <div class="preview-relationship">
+                <span class="preview-arrow">→</span>
+                <span class="preview-type">{{ selected_relationship_type.name }}</span>
+                <span class="preview-arrow">→</span>
+            </div>
+            <div class="preview-entity">{{ selected_entity.name }}</div>
+        </div>
+        <p class="preview-description">
+            "{{ entity.name }}" {{ selected_relationship_type.name }} "{{ selected_entity.name }}"
+        </p>
+    
+    {% elif rel_type == 'entity-excerpt' %}
+        <div class="preview-container">
+            <div class="preview-entity">{{ selected_entity.name }}</div>
+            <div class="preview-relationship">
+                <span class="preview-arrow">→</span>
+                <span class="preview-type">{{ selected_relationship_type.name }}</span>
+                <span class="preview-arrow">→</span>
+            </div>
+            <div class="preview-excerpt">{{ excerpt.content|truncatechars:30 }}</div>
+        </div>
+        <p class="preview-description">
+            "{{ selected_entity.name }}" {{ selected_relationship_type.name }} "{{ excerpt.content|truncatechars:30 }}"
+        </p>
+    
+    {% elif rel_type == 'excerpt-excerpt' %}
+        <!-- Hidden input to update the form's direction value -->
+        <input type="hidden" name="direction" value="{{ direction }}" form="excerpt-relationship-form">
+        
+        {% if direction == 'parent' %}
+            <div class="preview-container">
+                <div class="preview-excerpt">{{ excerpt.content|truncatechars:30 }}</div>
+                <div class="preview-relationship">
+                    <span class="preview-arrow">→</span>
+                    <span class="preview-type">{{ selected_relationship_type.name }}</span>
+                    <span class="preview-arrow">→</span>
+                </div>
+                <div class="preview-excerpt">{{ selected_excerpt.content|truncatechars:30 }}</div>
+            </div>
+            <p class="preview-description">
+                "{{ excerpt.content|truncatechars:30 }}" {{ selected_relationship_type.name }} "{{ selected_excerpt.content|truncatechars:30 }}"
+            </p>
+        {% else %}
+            <div class="preview-container">
+                <div class="preview-excerpt">{{ selected_excerpt.content|truncatechars:30 }}</div>
+                <div class="preview-relationship">
+                    <span class="preview-arrow">→</span>
+                    <span class="preview-type">{{ selected_relationship_type.name }}</span>
+                    <span class="preview-arrow">→</span>
+                </div>
+                <div class="preview-excerpt">{{ excerpt.content|truncatechars:30 }}</div>
+            </div>
+            <p class="preview-description">
+                "{{ selected_excerpt.content|truncatechars:30 }}" {{ selected_relationship_type.name }} "{{ excerpt.content|truncatechars:30 }}"
+            </p>
+        {% endif %}
+        
+        {% if selected_relationship_type and selected_excerpt %}
+            <div class="flip-direction-container">
+                <button class="flip-direction-btn" 
+                        hx-get="{% url 'relationship_preview' %}"
+                        hx-target="#relationship-preview-container"
+                        hx-include="[name='source_excerpt_id'],[name='target_excerpt_id'],[name='relationship_type_id']"
+                        hx-vals='{"rel_type": "{{ rel_type }}", "direction": "{% if direction == 'parent' %}child{% else %}parent{% endif %}"}'
+                        title="Flip relationship direction">
+                    <span class="flip-icon">⟲</span> Flip Direction
+                </button>
+            </div>
+        {% endif %}
+    {% endif %}
+</div> 

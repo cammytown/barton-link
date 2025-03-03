@@ -13,15 +13,39 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("search", views.search, name="search"),
 
-    path("excerpt/<int:excerpt_id>", views.excerpt, name="excerpt"),
+    path("excerpt/<int:excerpt_id>", views.excerpt, name="excerpt_detail"),
     path("excerpt/<int:excerpt_id>/", include(excerpt_patterns), name="excerpt"),
     path("excerpt/create", views.create_excerpt, name="create_excerpt"),
 
     path("entities", views.entities, name="entities"),
     path("entities/create", views.create_entity, name="create_entity"),
+    path("entity/<int:entity_id>", views.entity, name="entity_detail"),
 
     path("relationships/create", views.create_relationship, name="create_relationship"),
     path("relationships/create_type", views.create_relationship_type, name="create_relationship_type"),
+    path("relationships/preview", views.relationship_preview, name="relationship_preview"),
+
+    # Consolidated relationship view - RESTful approach
+    # For excerpt-based relationships
+    path("relationships/<str:rel_type>/<int:excerpt_id>", 
+         views.relationship, 
+         name="relationship"),
+    # For entity-based relationships
+    path("relationships/<str:rel_type>/entity/<int:entity_id>", 
+         views.relationship, 
+         name="entity_relationship"),
+    # For deleting relationships
+    path("relationships/<str:rel_type>/<int:relationship_id>/delete", 
+         views.relationship, 
+         name="relationship_delete"),
+    # Separate URL for relationship form - excerpt-based
+    path("relationships/<str:rel_type>/<int:excerpt_id>/form", 
+         views.relationship_form, 
+         name="relationship_form"),
+    # Separate URL for relationship form - entity-based
+    path("relationships/<str:rel_type>/entity/<int:entity_id>/form", 
+         views.relationship_form, 
+         name="entity_relationship_form"),
 
     path("tags", views.tags, name="tags"),
     path("tags/create", views.create_tag, name="create_tag"),

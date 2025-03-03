@@ -4,3 +4,4 @@ from .tag_types import *
 from .tools import *
 from .entities import *
 from .imports import *
+from .relationship_views import *

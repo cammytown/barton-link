@@ -1,6 +1,17 @@
 $startingHue: 270;
 $hueRotateSpeed: 500s;
 
+// Base colors - Dark Theme
+$primary-color: hsl(270, 70%, 60%);
+$danger-color: hsl(0, 70%, 60%);
+$success-color: hsl(120, 34%, 28%);
+$info-color: hsl(210, 70%, 60%);
+$text-color: hsl(270, 10%, 90%);
+$text-muted: hsl(270, 5%, 65%);
+$border-color: hsl(270, 10%, 30%);
+$background-light: hsl(270, 15%, 15%);
+$background-hover: hsl(270, 15%, 20%);
+
 //@TODO probably turn this redundant code into a mixin if they support params
 @keyframes background-hue-rotate {
 	0% { background-color: hsl(270, 35%, 7%); }

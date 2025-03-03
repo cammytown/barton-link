@@ -1,0 +1,102 @@
+<!-- List of relationships -->
+<div class="relationship-list">
+    {% if rel_type == 'entity-entity' and entity_relationships %}
+        {% for rel in entity_relationships %}
+            <div class="relationship-item">
+                {% if rel.entity_a.id == entity.id %}
+                    <div class="relationship-direction-container">
+                        <span class="relationship-direction-label">This entity</span>
+                        <span class="relationship-type">{{ rel.relationship_type.name }}</span>
+                        <span class="relationship-arrow">→</span>
+                        <a href="{% url 'entity_detail' rel.entity_b.id %}" class="related-entity">
+                            {{ rel.entity_b.name }}
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="relationship-direction-container">
+                        <a href="{% url 'entity_detail' rel.entity_a.id %}" class="related-entity">
+                            {{ rel.entity_a.name }}
+                        </a>
+                        <span class="relationship-arrow">→</span>
+                        <span class="relationship-type">{{ rel.relationship_type.name }}</span>
+                        <span class="relationship-direction-label">this entity</span>
+                    </div>
+                {% endif %}
+                <button class="delete-btn" 
+                        hx-delete="{% url 'relationship_delete' rel_type rel.id %}" 
+                        hx-target="#relationship-content"
+                        hx-confirm="Are you sure you want to delete this relationship?">×</button>
+            </div>
+        {% endfor %}
+    
+    {% elif rel_type == 'entity-excerpt' and entity_relationships %}
+        {% for rel in entity_relationships %}
+            <div class="relationship-item">
+                <div class="relationship-direction-container">
+                    <span class="relationship-direction-label">Entity:</span>
+                    <a href="{% url 'entity_detail' rel.entity.id %}" class="related-entity">
+                        {{ rel.entity.name }}
+                    </a>
+                    <span class="relationship-type">{{ rel.relationship_type.name }}</span>
+                    <span class="relationship-direction-label">this excerpt</span>
+                </div>
+                <button class="delete-btn" 
+                        hx-delete="{% url 'relationship_delete' rel_type rel.id %}" 
+                        hx-target="#relationship-content"
+                        hx-confirm="Are you sure you want to delete this relationship?">×</button>
+            </div>
+        {% endfor %}
+    
+    {% elif rel_type == 'excerpt-excerpt' and excerpt_relationships %}
+        {% for rel in excerpt_relationships %}
+            <div class="relationship-item">
+                {% if rel.parent.id == excerpt.id %}
+                    <div class="relationship-direction-container">
+                        <span class="relationship-direction-label">This excerpt</span>
+                        <span class="relationship-type">{{ rel.relationship_type.name }}</span>
+                        <span class="relationship-arrow">→</span>
+                    </div>
+                    <a href="{% url 'excerpt_detail' rel.child.id %}" class="related-excerpt">
+                        {{ rel.child.content|truncatechars:50 }}
+                    </a>
+                {% else %}
+                    <div class="relationship-direction-container">
+                        <a href="{% url 'excerpt_detail' rel.parent.id %}" class="related-excerpt">
+                            {{ rel.parent.content|truncatechars:50 }}
+                        </a>
+                        <span class="relationship-arrow">→</span>
+                        <span class="relationship-type">{{ rel.relationship_type.name }}</span>
+                        <span class="relationship-direction-label">this excerpt</span>
+                    </div>
+                {% endif %}
+                <button class="delete-btn" 
+                        hx-delete="{% url 'relationship_delete' rel_type rel.id %}" 
+                        hx-target="#relationship-content"
+                        hx-confirm="Are you sure you want to delete this relationship?">×</button>
+            </div>
+        {% endfor %}
+    
+    {% else %}
+        <p class="no-relationships">No relationships found.</p>
+    {% endif %}
+</div>
+
+<!-- Add new relationship button -->
+<div class="add-relationship">
+    {% if rel_type == 'entity-entity' %}
+        <button hx-get="{% url 'entity_relationship_form' rel_type entity.id %}" 
+                hx-target="#new-relationship-form"
+                class="add-btn">
+            Add Entity Relationship
+        </button>
+    {% elif rel_type == 'entity-excerpt' or rel_type == 'excerpt-excerpt' %}
+        <button hx-get="{% url 'relationship_form' rel_type excerpt.id %}" 
+                hx-target="#new-relationship-form"
+                class="add-btn">
+            Add {% if rel_type == 'entity-excerpt' %}Entity{% else %}Excerpt{% endif %} Relationship
+        </button>
+    {% endif %}
+</div>
+
+<!-- Form placeholder for new relationship -->
+<div id="new-relationship-form"></div> 

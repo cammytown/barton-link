@@ -1,0 +1,24 @@
+<!-- Relationship panel for excerpts -->
+<div id="excerpt-relationships" class="relationship-panel">
+    <!-- Tab navigation for relationship types -->
+    <div class="relationship-tabs">
+        <button class="tab-btn active" 
+                hx-get="{% url 'relationship' 'excerpt-excerpt' excerpt.id %}" 
+                hx-target="#relationship-content"
+                hx-trigger="click">
+            Related Excerpts
+        </button>
+        <button class="tab-btn" 
+                hx-get="{% url 'relationship' 'entity-excerpt' excerpt.id %}" 
+                hx-target="#relationship-content"
+                hx-trigger="click">
+            Related Entities
+        </button>
+    </div>
+    
+    <!-- Tab content - will be replaced by HTMX -->
+    <div id="relationship-content" class="relationship-content">
+        <!-- Initial content loaded server-side -->
+        {% include "excerpts/relationships/_relationship_list.html" with rel_type="excerpt-excerpt" %}
+    </div>
+</div> 
