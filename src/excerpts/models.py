@@ -43,11 +43,45 @@ class Tag(SoftDeleteModel):
 class RelationshipType(models.Model):
     name = models.TextField()
     description = models.TextField()
+    
+    # Define contexts where this relationship type can be used
+    ENTITY_ENTITY = 'EE'
+    EXCERPT_EXCERPT = 'XX'
+    ENTITY_EXCERPT = 'EX'
+    
+    CONTEXT_CHOICES = [
+        (ENTITY_ENTITY, 'Entity-Entity'),
+        (EXCERPT_EXCERPT, 'Excerpt-Excerpt'),
+        (ENTITY_EXCERPT, 'Entity-Excerpt'),
+    ]
+    
+    # Store as comma-separated values to allow multiple contexts
+    applicable_contexts = models.CharField(
+        max_length=10,
+        default=f"{ENTITY_ENTITY},{EXCERPT_EXCERPT},{ENTITY_EXCERPT}",
+        help_text="Comma-separated list of contexts where this relationship type can be used"
+    )
+    
+    def can_use_in_context(self, context):
+        """Check if this relationship type can be used in the given context"""
+        return context in self.applicable_contexts.split(',')
 
     def __str__(self):
         return self.name
 
-class EntityRelationship(models.Model):
+class BaseRelationship(models.Model):
+    """Abstract base class for all relationship models"""
+    relationship_type = models.ForeignKey('RelationshipType', 
+                                         on_delete=models.CASCADE,
+                                         null=True, blank=True)
+    
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+class EntityRelationship(BaseRelationship):
     # RELATIONSHIP_CHOICES = {
     #     "IS": "is",
     #     "HAS": "has",
@@ -63,13 +97,11 @@ class EntityRelationship(models.Model):
                                     on_delete=models.CASCADE,
                                     related_name='entity_b')
 
-    relationship_type = models.ForeignKey('RelationshipType',
-                                            on_delete=models.CASCADE)
-
     description = models.TextField()
 
     def __str__(self):
-        return f"{self.entity_a} - {self.entity_b}: {self.relationship_type}"
+        relationship = f" ({self.relationship_type})" if self.relationship_type else ""
+        return f"{self.entity_a} - {self.entity_b}{relationship}"
 
 class Entity(SoftDeleteModel):
     # ENTITY_TYPES = {
@@ -90,6 +122,10 @@ class Entity(SoftDeleteModel):
                                             through='EntityRelationship',
                                             symmetrical=False,
                                             related_name='related_entities')
+                                            
+    related_excerpts = models.ManyToManyField('Excerpt',
+                                             through='EntityExcerptRelationship',
+                                             related_name='related_entities')
 
     def __str__(self):
         return self.name
@@ -102,7 +138,7 @@ class ExcerptTag(models.Model):
     def __str__(self):
         return f"{self.excerpt} - {self.tag}"
 
-class ExcerptRelationship(models.Model):
+class ExcerptRelationship(BaseRelationship):
     parent = models.ForeignKey('Excerpt',
                                on_delete=models.CASCADE,
                                related_name='parent')
@@ -110,11 +146,22 @@ class ExcerptRelationship(models.Model):
                               on_delete=models.CASCADE,
                               related_name='child')
     
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
     def __str__(self):
-        return f"{self.parent} - {self.child}"
+        relationship = f" ({self.relationship_type})" if self.relationship_type else ""
+        return f"{self.parent} - {self.child}{relationship}"
+
+class EntityExcerptRelationship(BaseRelationship):
+    """Represents a relationship between an Entity and an Excerpt"""
+    entity = models.ForeignKey('Entity',
+                              on_delete=models.CASCADE,
+                              related_name='excerpt_relationships')
+    excerpt = models.ForeignKey('Excerpt',
+                               on_delete=models.CASCADE,
+                               related_name='entity_relationships')
+    
+    def __str__(self):
+        relationship = f" ({self.relationship_type})" if self.relationship_type else ""
+        return f"{self.entity} - {self.excerpt}{relationship}"
 
 class Excerpt(SoftDeleteModel):
     content = models.TextField()
@@ -123,7 +170,6 @@ class Excerpt(SoftDeleteModel):
                                   through='ExcerptTag',
                                   related_name='excerpts')
 
-    entities = models.ManyToManyField(Entity)
     
     parents = models.ManyToManyField('self',
                                      through='ExcerptRelationship',

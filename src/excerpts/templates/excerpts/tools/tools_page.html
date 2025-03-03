@@ -13,7 +13,12 @@
 	<a href="{% url 'autotag' %}">Autotag Excerpts</a>
 	<a href="{% url 'import' %}">Import Excerpts</a>
 
-	<a href="{% url 'create_default_relationship_types' %}">Create Default Relationship Types</a>
+	<div class="relationship-types-tools">
+		<h3>Relationship Types</h3>
+		<a href="{% url 'create_default_relationship_types' %}">Create Default Relationship Types</a>
+		<a href="{% url 'create_default_relationship_types' %}?force=true">Create/Update Default Relationship Types</a>
+		<p class="help-text">The second option will update existing types to match defaults.</p>
+	</div>
 </div>
 
 {% endblock %}

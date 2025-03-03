@@ -1,9 +1,9 @@
 # Tools-specific functionality
 
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseNotAllowed
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
-from ..models import RelationshipType
 from ..services import SimilarityAnalysisService
 
 similarity_analysis = SimilarityAnalysisService()
@@ -45,10 +45,24 @@ def get_analysis_progress(request):
 def create_default_relationship_types(request):
     """
     Create default relationship types.
+    
+    GET parameters:
+        force: If 'true', will update existing types to match defaults
     """
-    RelationshipType.objects.get_or_create(name="is_related_to")
-    RelationshipType.objects.get_or_create(name="is_part_of")
-    RelationshipType.objects.get_or_create(name="is_synonymous_with")
-    RelationshipType.objects.get_or_create(name="is_antonymous_with")
-
-    return HttpResponse("Default relationship types created.") 
+    from ..utils import setup_default_relationship_types
+    
+    # Check if force parameter is provided
+    force = request.GET.get('force', '').lower() == 'true'
+    
+    created_count, updated_count = setup_default_relationship_types(force=force)
+    
+    if created_count > 0:
+        messages.success(request, f"Successfully created {created_count} relationship types.")
+    
+    if updated_count > 0:
+        messages.success(request, f"Successfully updated {updated_count} relationship types.")
+    
+    if created_count == 0 and updated_count == 0:
+        messages.info(request, "All default relationship types already exist.")
+    
+    return redirect('tools') 
