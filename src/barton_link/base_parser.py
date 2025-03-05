@@ -72,6 +72,15 @@ class BaseParser:
                     excerpt: ParserExcerpt,
                     level = 0):
 
+        # Ensure level is non-negative
+        level = max(0, level)
+        
+        # Store the original indent level on the excerpt for debugging
+        excerpt.original_indent_level = excerpt.indent_level
+        
+        # Update the excerpt's indent level to match the normalized level
+        excerpt.indent_level = level
+
         # Pad working_excerpts with empty excerpts if necessary
         diff = level - len(self.state['working_excerpts']) + 1
         if diff > 0:

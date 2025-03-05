@@ -82,21 +82,31 @@ class MarkdownParser(BaseParser):
         #@REVISIT
         # tab_size = self.guess_tab_size(lines)
 
-        indent_level = 0
-
         # Get leading whitespace
         leading_whitespace = line[:len(line) - len(line.lstrip())]
-
-        # If leading whitespace is not empty
-        if leading_whitespace:
-            # Count tabs
-            tab_count = leading_whitespace.count("\t")
-
-            # Count spaces
-            space_count = leading_whitespace.count(" ")
-
-            indent_level = (tab_count * tab_size) + space_count
-
+        
+        # If the line (after stripping) starts with a list marker, we need to handle it specially
+        stripped_line = line.strip()
+        list_markers = ["- ", "* ", "| "]
+        is_list_item = any(stripped_line.startswith(marker) for marker in list_markers)
+        
+        # If there's no leading whitespace or it's not a list item, calculate normally
+        if not leading_whitespace:
+            return 0
+            
+        # Count tabs and spaces
+        tab_count = leading_whitespace.count("\t")
+        space_count = leading_whitespace.count(" ")
+        
+        # Calculate indent level
+        indent_level = (tab_count * tab_size) + space_count
+        
+        # For list items, normalize the indentation to ensure consistent parent-child relationships
+        # This ensures that accidental spaces before list markers don't create unwanted hierarchies
+        if is_list_item:
+            # Round to nearest tab_size (4 spaces) to normalize indentation
+            indent_level = (indent_level // tab_size) * tab_size
+            
         return indent_level
 
     # def guess_tab_size(self, lines):

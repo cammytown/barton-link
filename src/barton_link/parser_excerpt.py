@@ -35,6 +35,7 @@ class ParserExcerpt:
         self.metadata = metadata
 
         self.indent_level = indent_level
+        self.original_indent_level = indent_level  # Store the original indent level for debugging
         self.is_duplicate = is_duplicate
 
     def __repr__(self):
@@ -54,6 +55,7 @@ class ParserExcerpt:
             'tags': self.tags,
             'children': [child.to_dict() for child in self.children],
             'indent_level': self.indent_level,
+            'original_indent_level': getattr(self, 'original_indent_level', self.indent_level),
             'is_duplicate': self.is_duplicate
         }
 
@@ -69,6 +71,10 @@ class ParserExcerpt:
                                 indent_level = data['indent_level'],
                                 is_duplicate = data.get('is_duplicate', False)
                                 )
+        
+        # Set original_indent_level if it exists in the data
+        if 'original_indent_level' in data:
+            excerpt.original_indent_level = data['original_indent_level']
 
         excerpt.children = [ParserExcerpt.from_dict(child)
                             for child in data['children']]
