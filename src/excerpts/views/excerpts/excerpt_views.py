@@ -6,7 +6,7 @@ from django.template import loader
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 
-from ..models import \
+from ...models import \
         Excerpt,\
         ExcerptVersion,\
         ExcerptSimilarity,\

@@ -1,7 +1,7 @@
 {#@TODO probably don't nest forms#}
 <form
 	id="relationship-add"
-	hx-post="{% url 'create_relationship' %}"
+	hx-post="{% url 'create_relationship' rel_type='entity-entity' %}"
 	hx-target="#entity-add"
 >
 	{% csrf_token %}

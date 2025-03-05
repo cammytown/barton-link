@@ -1,4 +1,4 @@
-from .views import (
+from .import_views import (
     import_excerpts,
     import_file,
     import_text,

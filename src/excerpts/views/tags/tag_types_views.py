@@ -2,7 +2,7 @@ from django.http import HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 # from django.core.paginator import Paginator
 
-from ..models import TagType
+from ...models import TagType
 
 def tag_type(request, tag_type_id):
     # If HTMX request

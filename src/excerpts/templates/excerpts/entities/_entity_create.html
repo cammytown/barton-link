@@ -21,7 +21,7 @@
 		{% endfor %}
 
 		<button
-			hx-get="{% url 'create_relationship' %}"
+			hx-get="{% url 'relationship_form' rel_type='entity-entity' entity_id=0 %}"
 			hx-trigger="click"
 			hx-target="this"
 			hx-swap="outerHTML"

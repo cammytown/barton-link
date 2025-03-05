@@ -1,0 +1,237 @@
+# Tools-specific functionality
+
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseNotAllowed
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from ...services import SimilarityAnalysisService, AutotagService
+
+similarity_analysis = SimilarityAnalysisService()
+autotag = AutotagService()
+
+# Import views from other files
+from .similarity_views import (
+    analyze_similarities,
+    start_similarity_analysis,
+    stop_similarity_analysis,
+    get_analysis_progress,
+)
+
+from .autotag_views import (
+    autotag_excerpts,
+    start_autotag,
+    stop_autotag,
+    get_autotag_progress,
+)
+
+def tools(request):
+    """
+    Tools page.
+    """
+    return render(request, "excerpts/tools/tools_page.html")
+
+def create_default_relationship_types(request):
+    """
+    Create default relationship types.
+    
+    GET parameters:
+        force: If 'true', will update existing types to match defaults
+    """
+    from ...utils import setup_default_relationship_types
+    
+    # Check if force parameter is provided
+    force = request.GET.get('force', '').lower() == 'true'
+    
+    created_count, updated_count = setup_default_relationship_types(force=force)
+    
+    if created_count > 0:
+        messages.success(request, f"Successfully created {created_count} relationship types.")
+    
+    if updated_count > 0:
+        messages.success(request, f"Successfully updated {updated_count} relationship types.")
+    
+    if created_count == 0 and updated_count == 0:
+        messages.info(request, "All default relationship types already exist.")
+    
+    return redirect('tools')
+
+def analyze_similarities(request):
+    """
+    Index page for excerpt similarity analysis.
+    """
+    status = similarity_analysis.get_status()
+    return render(request, "excerpts/tools/analyze_similarities.html", status)
+
+def start_similarity_analysis(request):
+    """
+    Start similarity analysis.
+    """
+    similarity_analysis.start()
+    return get_analysis_progress(request)
+
+def stop_similarity_analysis(request):
+    """
+    Stop similarity analysis.
+    """
+    similarity_analysis.stop()
+    return HttpResponse("Similarity analysis stopped.")
+
+def get_analysis_progress(request):
+    """
+    Get similarity analysis progress.
+    """
+    status = similarity_analysis.get_status()
+    return render(request, "excerpts/tools/_analysis_progress.html", status)
+
+def autotag_excerpts(request):
+    """
+    Autotag excerpts.
+
+    Present user with confirmation page before proceeding.
+    """
+
+    page_num = request.GET.get("page", 1)
+    # page_size = request.GET.get("page_size", 50)
+
+    # Get autotag service status
+    status = autotag.get_status()
+
+    # Get 10 excerpts with autotags starting at page
+    excerpts = Excerpt.objects.filter(autotags__isnull=False).distinct()
+
+    # Paginate excerpts
+    #@REVISIT make cleaner
+    paginator = Paginator(excerpts, 10)
+    page_obj = paginator.get_page(page_num)
+
+    # try:
+    #     excerpts = paginator.page(page_num)
+    # except PageNotAnInteger:
+    #     excerpts = paginator.page(1)
+    # except EmptyPage:
+    #     excerpts = paginator.page(paginator.num_pages)
+
+    #@TODO redundant w/ excerpts search view
+    prev_page_url = None
+    next_page_url = None
+
+    if page_obj.has_previous():
+        prev_page_url = reverse("autotag") + \
+                f"?page={page_obj.previous_page_number()}"
+
+        # if search:
+        #     prev_page_url += f"&search={search}"
+
+    if page_obj.has_next():
+        next_page_url = reverse("autotag") + \
+                f"?page={page_obj.next_page_number()}"
+
+        # if search:
+        #     next_page_url += f"&search={search}"
+
+    context = {
+        "status": status,
+        "page_obj": page_obj,
+        "prev_page_url": prev_page_url,
+        "next_page_url": next_page_url,
+    }
+
+    return render(request, "excerpts/tools/autotag.html", context)
+    # return render(request, "excerpts/autotag_confirmation.html", context)
+
+def start_autotag(request):
+    autotag.start()
+
+    return get_autotag_progress(request)
+
+def stop_autotag(request):
+    autotag.stop()
+
+    return HttpResponse("Autotag stopped.")
+
+def get_autotag_progress(request):
+    status = autotag.get_status()
+
+    return render(request,
+                  "excerpts/tools/_autotag_progress.html",
+                  { "status": status })
+
+# def autotag_excerpts(request, excerpt_id=None):
+#     """
+#     Autotag excerpts.
+
+#     Present user with confirmation page before proceeding.
+#     """
+
+#     if excerpt_id:
+#         # Get excerpt with id
+#         excerpts = Excerpt.objects.filter(id=excerpt_id)
+
+#         # If no excerpt with id
+#         if len(excerpts) == 0:
+#             # Return 404
+#             return HttpResponseNotFound()
+#     else:
+#         # Get all excerpts, order by ascending id
+#         excerpts = Excerpt.objects.order_by("id")
+
+#     autotag_objs = []
+#     # warnings = []
+
+#     # For each excerpt
+#     for excerpt in excerpts:
+#         excerpt_autotag_objs = autotag_excerpt(excerpt)
+
+#         # If excerpt has autotags
+#         if len(excerpt_autotag_objs) > 0:
+#             autotag_objs.append({ "excerpt": excerpt, "tag_objs": excerpt_autotag_objs, })
+#             break
+
+#     context = { "autotags": autotag_objs, }
+
+#     return render(request, "excerpts/autotag_confirmation.html", context)
+
+# #@TODO probably move into a class
+# def autotag_excerpt(excerpt):
+#     """
+#     Autotag an excerpt.
+#     """
+
+#     # Get all tags
+#     #@TODO-4 optimization? does Django cache this?
+#     tags = Tag.objects.all()
+
+#     # Get excerpt text
+#     excerpt_text = excerpt.content
+#     excerpt_autotag_objs = []
+
+#     print(f"Autotagging excerpt {excerpt.id}...", end="\r")
+
+#     # For each tag
+#     # inactive_tag_names = []
+#     for tag in tags:
+#         # Check if tag is already in excerpt
+#         if tag in excerpt.tags.all():
+#             continue
+
+#         # Get tag name
+#         tag_name = tag.name
+#         # inactive_tag_names.append(tag_name)
+
+#         # # If tag name is in excerpt text
+#         # if tag_name in excerpt_text:
+
+#         # Measure semantic similarity between tag name and excerpt text
+#         similarity = barton_link.measure_similarity_sbert(tag_name, excerpt_text)
+
+#         # If similarity is above threshold
+#         if similarity > 0.5:
+#             # If similarity is 1.0
+#             if similarity == 1.0:
+#                 print("Warning: Tag name is identical to excerpt text.")
+
+#             excerpt_autotag_objs.append({
+#                 "tag": tag,
+#                 "similarity": similarity,
+#             })
+#     return excerpt_autotag_objs
